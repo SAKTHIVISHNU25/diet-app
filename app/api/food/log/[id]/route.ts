@@ -8,7 +8,7 @@ import {
 } from '@/lib/utils/api';
 import { requireUser } from '@/lib/utils/route-auth';
 import { adminDb, PATHS } from '@/lib/firebase/admin';
-import { stripUndefined } from '@/lib/firebase/converters';
+import { mergeEncryptedRecord } from '@/lib/crypto/record-crypto';
 import { foodLogUpdateSchema } from '@/lib/validations/food';
 import { normalizeFoodLog } from '@/lib/data/food-logs';
 
@@ -48,8 +48,14 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       return apiError('not_found', 'That food entry no longer exists.');
     }
 
-    await ref.update(
-      stripUndefined({ ...parsed.data, updated_at: ServerValue.TIMESTAMP }),
+    // The record is one sealed blob, so a field cannot be patched in place:
+    // unseal, merge, reseal. `set` rather than `update`, because a merge-update
+    // would leave the previous `enc` beside a stale plaintext field.
+    await ref.set(
+      mergeEncryptedRecord('food_logs', auth.user.uid, id, existing.val(), {
+        ...parsed.data,
+        updated_at: ServerValue.TIMESTAMP,
+      }),
     );
 
     const updated = await ref.get();

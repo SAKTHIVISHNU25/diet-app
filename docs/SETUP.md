@@ -132,7 +132,34 @@ If you skip Storage, the app still works: photos are analysed in memory and simp
 
 ---
 
-## 3. USDA FoodData Central
+## 3. Data encryption key
+
+Food logs, diet plans, planned meals and weigh-ins are encrypted with AES-256-GCM before they reach Realtime Database, so the app will not start without a key. Profiles are deliberately left readable — see [DATABASE.md](DATABASE.md#encryption-at-rest) for why.
+
+```bash
+openssl rand -base64 32
+```
+
+Put the result in `.env.local`:
+
+```bash
+DATA_ENCRYPTION_KEY=your-generated-key
+```
+
+**Server-only, and the one secret with no recovery path.** Losing it means losing every encrypted record — a database export without the key is unreadable. Use a different key in production, and back it up somewhere other than the database.
+
+If you already have data in the database from before encryption, convert it once:
+
+```bash
+npm run encrypt:migrate -- --dry-run   # preview
+npm run encrypt:migrate                # convert
+```
+
+Records already encrypted are skipped, so it is safe to re-run.
+
+---
+
+## 4. USDA FoodData Central
 
 1. Request a key at https://fdc.nal.usda.gov/api-key-signup.html — it arrives by email, usually immediately.
 2. Set it in `.env.local`:
@@ -157,7 +184,7 @@ Writes ~40 common foods (including South Asian staples the recognition model doe
 
 ---
 
-## 4. Hugging Face (optional)
+## 5. Hugging Face (optional)
 
 Needed only when `FOOD_VISION_PROVIDER=huggingface`.
 
@@ -196,7 +223,7 @@ The default model is `nateraw/food`, a ViT fine-tuned on Food-101 (Apache-2.0, 1
 
 ---
 
-## 5. Your `.env.local`
+## 6. Your `.env.local`
 
 ```bash
 NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSy...
@@ -208,6 +235,8 @@ NEXT_PUBLIC_FIREBASE_APP_ID=1:000000000000:web:abc123
 NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://your-project-default-rtdb.firebaseio.com
 
 FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
+
+DATA_ENCRYPTION_KEY=base64-32-bytes-from-openssl
 
 USDA_API_KEY=your-usda-key
 
@@ -223,7 +252,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 ---
 
-## 6. Check the configuration
+## 7. Check the configuration
 
 Before opening the app, run the preflight check:
 
@@ -244,7 +273,7 @@ Fix anything it reports before moving on.
 
 ---
 
-## 7. Run it
+## 8. Run it
 
 ```bash
 npm run dev
@@ -254,7 +283,7 @@ Open http://localhost:3000, create an account, and complete onboarding. You shou
 
 ---
 
-## 8. Verify
+## 9. Verify
 
 ```bash
 npm run lint

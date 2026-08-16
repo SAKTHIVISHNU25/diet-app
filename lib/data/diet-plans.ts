@@ -5,6 +5,7 @@ import type { MealType } from '@/types/meal';
 import { adminDb, PATHS } from '@/lib/firebase/admin';
 import { getUserId } from '@/lib/firebase/server';
 import { toEntries, toISOString, toNumber } from '@/lib/firebase/converters';
+import { decryptRecordSafe } from '@/lib/crypto/record-crypto';
 
 /** The user's current active plan with all of its meals, or null. */
 export async function getActivePlan(): Promise<DietPlanWithMeals | null> {
@@ -44,7 +45,7 @@ export async function getActivePlan(): Promise<DietPlanWithMeals | null> {
 }
 
 export function normalizePlan(id: string, uid: string, data: unknown): DietPlan {
-  const row = (data ?? {}) as Record<string, unknown>;
+  const row = decryptRecordSafe('diet_plans', uid, id, data);
 
   return {
     id,
@@ -63,7 +64,7 @@ export function normalizePlan(id: string, uid: string, data: unknown): DietPlan 
 }
 
 export function normalizePlanMeal(id: string, uid: string, data: unknown): DietPlanMeal {
-  const row = (data ?? {}) as Record<string, unknown>;
+  const row = decryptRecordSafe('diet_plan_meals', uid, id, data);
 
   return {
     id,

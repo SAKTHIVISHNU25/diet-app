@@ -9,6 +9,7 @@ import {
   toNumber,
   toStringOrNull,
 } from '@/lib/firebase/converters';
+import { decryptRecordSafe } from '@/lib/crypto/record-crypto';
 
 /**
  * Weigh-ins live at `weight_entries/{uid}/{YYYY-MM-DD}` — the date IS the key,
@@ -62,7 +63,7 @@ export function normalizeWeightEntry(
   uid: string,
   data: unknown,
 ): WeightEntry {
-  const row = (data ?? {}) as Record<string, unknown>;
+  const row = decryptRecordSafe('weight_entries', uid, id, data);
 
   return {
     id,

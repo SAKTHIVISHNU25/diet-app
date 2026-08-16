@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "check:firebase": "node scripts/check-firebase.mjs",
-    "seed": "node scripts/seed-food-cache.mjs"
+    "seed": "node scripts/seed-food-cache.mjs",
+    "encrypt:migrate": "node scripts/encrypt-existing-data.mjs"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.3",

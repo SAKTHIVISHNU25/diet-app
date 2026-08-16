@@ -61,11 +61,15 @@ Test-mode rules are world-readable and expire after 30 days. Check **Realtime Da
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | `1:...:web:...` | Public |
 | `NEXT_PUBLIC_FIREBASE_DATABASE_URL` | your RTDB URL | Public, **region-specific** |
 | `FIREBASE_SERVICE_ACCOUNT_KEY` | service account JSON | **SECRET** |
+| `DATA_ENCRYPTION_KEY` | `openssl rand -base64 32` | **SECRET**, unrecoverable |
+| `DATA_ENCRYPTION_KEYS_PREVIOUS` | retired keys, comma-separated | **SECRET**, only when rotating |
 | `USDA_API_KEY` | your key | **SECRET** |
 | `HF_TOKEN` | `hf_...` | **SECRET** |
 | `FOOD_VISION_PROVIDER` | `huggingface` | |
 | `DIET_PLAN_PROVIDER` | `template` | |
 | `NEXT_PUBLIC_SITE_URL` | `https://your-app.vercel.app` | |
+
+**Use a different `DATA_ENCRYPTION_KEY` in production than in development**, and store a copy of it somewhere other than the Firebase project it protects — a password manager, not a database backup. It encrypts every food log, diet plan and weigh-in; if it is lost, so is that data, and no Firebase export will bring it back. If the production database already holds plaintext records from before encryption, run `npm run encrypt:migrate` against it once the key is set (take a Console export first).
 
 **The service account key needs care.** The raw JSON contains literal newlines inside `private_key`, which Vercel's environment editor mangles. Base64-encode it instead — the app decodes either form:
 

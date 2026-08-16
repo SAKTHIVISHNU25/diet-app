@@ -66,6 +66,8 @@ The node key is the Firebase Auth uid, so a user has exactly one profile by cons
 
 Postgres enums are gone, so the equivalent constraint is a `.validate` regex in the rules — see below. Ranges are validated in both Zod and the rules: Zod for a good error message, rules for the guarantee.
 
+**This is the one node stored unencrypted**, and that is why. Rules cannot inspect ciphertext, so encrypting the profile would trade every guarantee in the table above for confidentiality of a name and a height. Everything a user actually records — what they ate, what they weigh, what they are working towards — is encrypted. See [Encryption at rest](#encryption-at-rest).
+
 **Targets are not stored.** BMR, TDEE, calories and macros are derived from this node on every read by `lib/calculations/targets.ts`. Editing your weight changes your targets immediately, with no migration or recalculation job.
 
 ---
@@ -89,7 +91,9 @@ One node per logged food item. A meal is several nodes sharing a `log_date` and 
 | `confidence` | number \| null | Model confidence 0–1 |
 | `created_at` / `updated_at` | number | Epoch ms |
 
-**Indexed on `log_date`** (`.indexOn: ["log_date"]`). Without that declaration Firebase still returns correct results but sorts on the client and logs a performance warning.
+The table above is the *logical* record — what the app reads and writes. Physically, only `log_date`, `created_at` and `updated_at` are stored as-is; every other field lives inside the encrypted `enc` blob. See [Encryption at rest](#encryption-at-rest).
+
+**Indexed on `log_date`** (`.indexOn: ["log_date"]`). Without that declaration Firebase still returns correct results but sorts on the client and logs a performance warning. It is also why `log_date` cannot be encrypted: the query is a range scan.
 
 Keys come from `push()`, which generates chronologically-sortable ids.
 
@@ -123,6 +127,8 @@ There is no `user_id` field — it is implied by the path. The `FoodLog` type st
 
 Indexed on `plan_id`.
 
+Both tables are the *logical* record. On disk, a plan keeps only `is_active` and its timestamps in the clear, a meal keeps only `plan_id` and its timestamps; the rest is sealed in `enc`. See [Encryption at rest](#encryption-at-rest).
+
 Meals are a **sibling** of plans rather than nested inside them. Realtime Database fetches an entire subtree, so nesting 28 meals under a plan would mean downloading every meal just to read the plan's calorie target. Keeping them separate lets each be read independently.
 
 Targets are snapshotted onto the plan, so a plan generated last week still shows the targets it was built for.
@@ -140,13 +146,15 @@ Targets are snapshotted onto the plan, so a plan generated last week still shows
 
 **The date is the key.** This is how the old `unique (user_id, entry_date)` constraint survives the move: writing twice for the same day overwrites rather than duplicating, so the trend chart can never show two points for one day. No index is needed either — `YYYY-MM-DD` keys sort chronologically on their own.
 
-Changing an entry's date means *moving the node*. `PATCH /api/progress/[id]` does that as a single atomic multi-path update (`{ [newDate]: {...}, [oldDate]: null }`).
+`weight_kg` and `note` are stored inside `enc`; the key, `entry_date` and the timestamps stay in the clear. Encrypting `entry_date` would gain nothing, since the key already is the date. See [Encryption at rest](#encryption-at-rest).
+
+Changing an entry's date means *moving the node*. `PATCH /api/progress/[id]` does that as a single atomic multi-path update (`{ [newDate]: {...}, [oldDate]: null }`) — and because the ciphertext is bound to its record id, the move re-seals the record under the new date rather than copying the blob.
 
 ---
 
 ## `food_cache/{key}`
 
-Shared, non-user-owned cache of normalized USDA lookups. Readable and writable by any signed-in user — it is public reference data with nothing private in it.
+Shared, non-user-owned cache of normalized USDA lookups. Readable and writable by any signed-in user — it is public reference data with nothing private in it, which is also why it is left unencrypted: there is nothing to protect, and per-user keys would defeat the point of a shared cache.
 
 | Field | Type |
 |---|---|
@@ -170,6 +178,54 @@ That escaping lives in `encodeKey()` in `lib/firebase/admin.ts`, and the seed sc
 **Fallback search is a full scan.** Realtime Database has no `contains` operator, so when USDA is unreachable the app reads the cache node and filters in memory. That is acceptable because the cache is small by design and the path only runs after USDA has already failed.
 
 Seed it with `node scripts/seed-food-cache.mjs` (~40 common foods, including South Asian staples the recognition model does not know).
+
+---
+
+## Encryption at rest
+
+Firebase encrypts its own disks, but that key is Google's: anyone who can read the database — through the Console, a leaked service-account key, an over-broad rule — sees plaintext. So user content is encrypted by the application *before* it is written, with a key that lives only in the app's environment. A database dump on its own is inert.
+
+`lib/crypto/field-crypto.ts` holds the AES-256-GCM primitive; `lib/crypto/record-crypto.ts` decides what gets sealed.
+
+**Every content field of a record is folded into one blob** under an `enc` key. A whole-record blob rather than per-field ciphertext, because it hides which optional fields are even present (an empty `note` and a long one look the same) and costs one GCM operation per record instead of a dozen.
+
+What stays readable is only what the database itself has to understand:
+
+| Node | Plaintext | Encrypted |
+|---|---|---|
+| `profiles/{uid}` | **everything** | nothing |
+| `food_logs/{uid}/{pushId}` | `log_date`, `created_at`, `updated_at` | food name, portion, macros, image URL, confidence, source |
+| `diet_plans/{uid}/{pushId}` | `is_active`, `created_at`, `updated_at` | name, start date, calorie and macro targets, generator |
+| `diet_plan_meals/{uid}/{pushId}` | `plan_id`, `created_at`, `updated_at` | name, foods, macros, day index, meal type, sort order |
+| `weight_entries/{uid}/{date}` | `entry_date`, `created_at`, `updated_at` | weight, note |
+| `food_cache/{key}` | **everything** | nothing |
+
+The exclusions are deliberate, not oversights:
+
+- **`profiles` is not encrypted.** It is the one node whose fields the Security Rules genuinely validate — age 13–120, weight 25–400, the gender and goal enums. Rules cannot inspect ciphertext, so encrypting the profile would trade real server-side validation for confidentiality of a name and a height.
+- **`log_date` cannot be encrypted.** History is read with `orderByChild('log_date').startAt(...)` — a range query. Deterministic encryption would support `equalTo` but not ordering, and order-preserving encryption leaks more than it hides.
+- **`plan_id` and `is_active`** are an opaque push id and a boolean. They are indexed, and they reveal nothing.
+- **`food_cache` is shared reference data** — USDA nutrition figures, owned by no user. There is nothing private in it, and per-user keys would defeat the point of a shared cache.
+
+What this leaks, therefore, is *that* a user logged something on a given day — not what, how much, or what they weigh.
+
+### Records are bound to their location
+
+The ciphertext is authenticated with `"{collection}:{uid}:{recordId}"` as GCM additional data. That binding means a blob copied into another user's subtree, another collection, or another key simply fails to decrypt — someone with write access cannot graft another account's record onto their own and have the app read it back. It is also why moving a weigh-in to a different date (`PATCH /api/progress/[id]`) re-seals the record instead of copying the blob across.
+
+### Reading and writing
+
+Decryption happens inside the existing `normalize*` functions in `lib/data/`, so every read path gets plaintext without knowing encryption exists. Reads use `decryptRecordSafe`, which logs and degrades a single unreadable record to its plaintext fields rather than failing a whole page.
+
+Writes are the one place that changed shape: a sealed record cannot be patched field-by-field, so partial updates are read-modify-write via `mergeEncryptedRecord`, finishing with `set` rather than `update`. Every route already read the node to check it existed, so this costs no extra round trip. Using `update` here would be a bug — it would leave a stale plaintext field beside the new blob.
+
+### Legacy and rotation
+
+A record with no `enc` key is treated as legacy plaintext and returned as-is, so encrypted and unencrypted data coexist and there is no cutover. `npm run encrypt:migrate` (`--dry-run` to preview) converts what already exists; it skips anything already sealed, so it is safe to re-run and resumes after an interruption.
+
+Each blob carries the id of the key that sealed it (`v1.<keyId>.<iv>.<payload>`), derived from the key itself. To rotate: move the old key into `DATA_ENCRYPTION_KEYS_PREVIOUS`, put a new one in `DATA_ENCRYPTION_KEY`, deploy. Old records keep opening; new writes use the new key.
+
+> **Back the key up separately from the database.** There is no recovery path — without `DATA_ENCRYPTION_KEY` the data is gone, and a backup of the database stored next to a backup of the key protects against nothing.
 
 ---
 
@@ -200,7 +256,9 @@ Three things worth knowing about how these behave:
 - **Rules cascade downward and cannot be revoked.** Granting `.read` at `food_logs/$uid` grants it to everything beneath. A deeper `.read: false` does *not* take it away.
 - **`.validate` runs only on non-null writes.** It cannot prevent a delete; `.write` governs that.
 
-Validation in the rules covers what the app cannot be trusted to enforce alone: date formats, enum values, and numeric ranges on age, height, weight, grams and confidence.
+Validation in the rules covers what the app cannot be trusted to enforce alone — but only where the rules can still see the values. On `profiles`, that is the full set: date formats, enum values, and numeric ranges on age, height and weight.
+
+On the encrypted nodes it necessarily shrinks. Rules cannot inspect ciphertext, so they now check the shape rather than the contents: the queryable field is present and well-formed, `enc` is a `v1.` string within a size cap, and `$other` rejects any key outside that set — so nothing can be written back in the clear. The field-level range checks that used to live here (grams 0–5000, confidence 0–1, weight 25–400) are enforced by the Zod schemas in `lib/validations/` before the record is sealed. That is a real reduction in defence-in-depth, and it is the price of encryption; it is tolerable here because these nodes are written exclusively by server routes through the Admin SDK, which bypassed the rules anyway. The only direct browser access is photo upload to Storage.
 
 ### The Admin SDK bypasses all of this
 

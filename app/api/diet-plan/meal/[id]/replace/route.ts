@@ -9,6 +9,7 @@ import {
 import { requireUser } from '@/lib/utils/route-auth';
 import { adminDb, PATHS } from '@/lib/firebase/admin';
 import { toNumber } from '@/lib/firebase/converters';
+import { decryptRecord, encryptRecord } from '@/lib/crypto/record-crypto';
 import { replacePlanMealSchema } from '@/lib/validations/diet-plan';
 import { calculateTargets } from '@/lib/calculations/targets';
 import { buildMeal, getMealSplit } from '@/lib/diet/template-planner';
@@ -52,7 +53,9 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       return apiError('not_found', 'That meal no longer exists.');
     }
 
-    const existing = (mealSnapshot.val() ?? {}) as Record<string, unknown>;
+    // `sort_order`, `meal_type` and `day_index` are sealed, so the slot this
+    // meal occupies can only be recovered from the unsealed record.
+    const existing = decryptRecord('diet_plan_meals', uid, id, mealSnapshot.val());
 
     const profileSnapshot = await db.ref(PATHS.profile(uid)).get();
     if (!profileSnapshot.exists()) {
@@ -92,15 +95,20 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       random,
     });
 
-    await mealRef.update({
-      name: replacement.name,
-      foods: replacement.foods,
-      calories: replacement.calories,
-      protein_g: replacement.protein_g,
-      carbs_g: replacement.carbs_g,
-      fat_g: replacement.fat_g,
-      updated_at: ServerValue.TIMESTAMP,
-    });
+    // `existing` is already unsealed, so the whole record is resealed in one
+    // go rather than read a second time.
+    await mealRef.set(
+      encryptRecord('diet_plan_meals', uid, id, {
+        ...existing,
+        name: replacement.name,
+        foods: replacement.foods,
+        calories: replacement.calories,
+        protein_g: replacement.protein_g,
+        carbs_g: replacement.carbs_g,
+        fat_g: replacement.fat_g,
+        updated_at: ServerValue.TIMESTAMP,
+      }),
+    );
 
     const updated = await mealRef.get();
     return apiSuccess({ meal: normalizePlanMeal(id, uid, updated.val()) });

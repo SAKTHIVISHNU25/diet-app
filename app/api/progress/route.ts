@@ -3,7 +3,8 @@ import { ServerValue } from 'firebase-admin/database';
 import { apiSuccess, handleRouteError, validationError } from '@/lib/utils/api';
 import { requireUser } from '@/lib/utils/route-auth';
 import { adminDb, PATHS } from '@/lib/firebase/admin';
-import { stripUndefined, toEntries } from '@/lib/firebase/converters';
+import { toEntries } from '@/lib/firebase/converters';
+import { mergeEncryptedRecord } from '@/lib/crypto/record-crypto';
 import { weightEntrySchema } from '@/lib/validations/progress';
 import { normalizeWeightEntry } from '@/lib/data/progress';
 
@@ -48,14 +49,23 @@ export async function POST(request: NextRequest) {
 
     const existing = await ref.get();
 
-    await ref.update(
-      stripUndefined({
-        ...parsed.data,
-        created_at: existing.exists()
-          ? (existing.val()?.created_at ?? ServerValue.TIMESTAMP)
-          : ServerValue.TIMESTAMP,
-        updated_at: ServerValue.TIMESTAMP,
-      }),
+    // Re-weighing the same day corrects that day's entry, so this is an upsert:
+    // merging over the unsealed existing record keeps the old note when the new
+    // request omits one, exactly as the previous merge-update did.
+    await ref.set(
+      mergeEncryptedRecord(
+        'weight_entries',
+        auth.user.uid,
+        parsed.data.entry_date,
+        existing.val(),
+        {
+          ...parsed.data,
+          created_at: existing.exists()
+            ? (existing.val()?.created_at ?? ServerValue.TIMESTAMP)
+            : ServerValue.TIMESTAMP,
+          updated_at: ServerValue.TIMESTAMP,
+        },
+      ),
     );
 
     const saved = await ref.get();

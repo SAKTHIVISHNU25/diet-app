@@ -88,6 +88,8 @@ Full descriptions are in [`.env.example`](.env.example).
 | `NEXT_PUBLIC_FIREBASE_*` | public | yes | Web SDK config — public by design |
 | `NEXT_PUBLIC_FIREBASE_DATABASE_URL` | public | yes | Realtime Database URL (region-specific) |
 | `FIREBASE_SERVICE_ACCOUNT_KEY` | **server only** | yes | Admin SDK — a genuine secret |
+| `DATA_ENCRYPTION_KEY` | **server only** | yes | AES-256-GCM key for user data at rest |
+| `DATA_ENCRYPTION_KEYS_PREVIOUS` | **server only** | no | Retired keys, decrypt-only, for rotation |
 | `USDA_API_KEY` | **server only** | yes | USDA FoodData Central |
 | `HF_TOKEN` | **server only** | only for `huggingface` | Hugging Face Inference API |
 | `FOOD_VISION_PROVIDER` | server | no | `huggingface` (default) or `mock` |
@@ -97,6 +99,8 @@ Full descriptions are in [`.env.example`](.env.example).
 | `NEXT_PUBLIC_SITE_URL` | public | no | Used to build auth email redirect links |
 
 Server-only variables must **never** be prefixed with `NEXT_PUBLIC_`. The `NEXT_PUBLIC_FIREBASE_*` values are safe to expose — they identify the project and grant no access. `FIREBASE_SERVICE_ACCOUNT_KEY` is the opposite: it bypasses every security rule.
+
+Generate the encryption key with `openssl rand -base64 32`. **Losing it means losing the data** — food logs, diet plans and weigh-ins cannot be recovered without it. Back it up somewhere other than the database it protects. See [docs/DATABASE.md](docs/DATABASE.md#encryption-at-rest) for what is encrypted and what is not.
 
 ---
 

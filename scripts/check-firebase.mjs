@@ -286,7 +286,49 @@ if (!serviceAccount) {
   }
 }
 
-// -------------------------------------------------------------------- 6. optional
+// -------------------------------------------------------------------- 6. encryption
+
+section('Data encryption');
+
+// Everything except profiles is sealed before it is written, so a missing or
+// malformed key is a hard failure — without it nothing can be read or written.
+{
+  const raw = (process.env.DATA_ENCRYPTION_KEY || '').trim();
+
+  if (!raw) {
+    fail(
+      'DATA_ENCRYPTION_KEY is not set',
+      'Generate one with `openssl rand -base64 32`. Food logs, diet plans and weigh-ins cannot be read or written without it.',
+    );
+  } else {
+    const decoded = /^[0-9a-fA-F]{64}$/.test(raw)
+      ? Buffer.from(raw, 'hex')
+      : Buffer.from(raw, 'base64');
+
+    if (decoded.length !== 32) {
+      fail(
+        `DATA_ENCRYPTION_KEY decodes to ${decoded.length} bytes, expected 32`,
+        'Generate a fresh one with `openssl rand -base64 32`',
+      );
+    } else {
+      pass('DATA_ENCRYPTION_KEY is set', '(AES-256, 32 bytes)');
+    }
+  }
+
+  const previous = (process.env.DATA_ENCRYPTION_KEYS_PREVIOUS || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (previous.length > 0) {
+    pass(
+      `${previous.length} retired key(s) available for decryption`,
+      'Remove them once every record has been re-encrypted',
+    );
+  }
+}
+
+// -------------------------------------------------------------------- 7. optional
 
 section('Optional services');
 

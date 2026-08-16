@@ -12,6 +12,7 @@ import {
   toNumber,
   toStringOrNull,
 } from '@/lib/firebase/converters';
+import { decryptRecordSafe } from '@/lib/crypto/record-crypto';
 import { addDays, toISODate } from '@/lib/utils';
 
 /**
@@ -95,9 +96,15 @@ export async function getDailyCalorieHistory(
     .reverse();
 }
 
-/** `user_id` is implied by the path, so it is passed in rather than stored. */
+/**
+ * `user_id` is implied by the path, so it is passed in rather than stored.
+ *
+ * Everything except `log_date` and the timestamps arrives sealed in `enc`;
+ * unsealing here means every read path — pages, API routes, history — gets
+ * plaintext without knowing encryption exists.
+ */
 export function normalizeFoodLog(id: string, uid: string, data: unknown): FoodLog {
-  const row = (data ?? {}) as Record<string, unknown>;
+  const row = decryptRecordSafe('food_logs', uid, id, data);
 
   return {
     id,

@@ -9,6 +9,7 @@ import {
 import { requireUser } from '@/lib/utils/route-auth';
 import { adminDb, PATHS } from '@/lib/firebase/admin';
 import { toEntries } from '@/lib/firebase/converters';
+import { encryptRecord } from '@/lib/crypto/record-crypto';
 import { generatePlanSchema } from '@/lib/validations/diet-plan';
 import { calculateTargets } from '@/lib/calculations/targets';
 import { getDietPlanProvider } from '@/lib/diet/provider';
@@ -82,7 +83,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    updates[PATHS.dietPlan(uid, planId)] = {
+    // `is_active` stays in the clear because it is indexed and selects the
+    // current plan; the targets, which reveal the user's calorie prescription,
+    // are sealed.
+    updates[PATHS.dietPlan(uid, planId)] = encryptRecord('diet_plans', uid, planId, {
       name: '7-Day Plan',
       start_date: toISODate(),
       calorie_target: plan.calorieTarget,
@@ -93,7 +97,7 @@ export async function POST(request: NextRequest) {
       is_active: true,
       created_at: ServerValue.TIMESTAMP,
       updated_at: ServerValue.TIMESTAMP,
-    };
+    });
 
     // Drop the superseded plans' meals so the database does not accumulate
     // orphaned nodes every time the user regenerates.
@@ -112,20 +116,27 @@ export async function POST(request: NextRequest) {
     for (const meal of plan.meals) {
       const mealId = mealsRef.push().key;
       if (!mealId) continue;
-      updates[PATHS.dietPlanMeal(uid, mealId)] = {
-        plan_id: planId,
-        day_index: meal.day_index,
-        meal_type: meal.meal_type,
-        name: meal.name,
-        foods: meal.foods,
-        calories: meal.calories,
-        protein_g: meal.protein_g,
-        carbs_g: meal.carbs_g,
-        fat_g: meal.fat_g,
-        sort_order: meal.sort_order,
-        created_at: ServerValue.TIMESTAMP,
-        updated_at: ServerValue.TIMESTAMP,
-      };
+      // `plan_id` is the query key for this node, so it stays plaintext — it is
+      // an opaque push id and reveals nothing on its own.
+      updates[PATHS.dietPlanMeal(uid, mealId)] = encryptRecord(
+        'diet_plan_meals',
+        uid,
+        mealId,
+        {
+          plan_id: planId,
+          day_index: meal.day_index,
+          meal_type: meal.meal_type,
+          name: meal.name,
+          foods: meal.foods,
+          calories: meal.calories,
+          protein_g: meal.protein_g,
+          carbs_g: meal.carbs_g,
+          fat_g: meal.fat_g,
+          sort_order: meal.sort_order,
+          created_at: ServerValue.TIMESTAMP,
+          updated_at: ServerValue.TIMESTAMP,
+        },
+      );
     }
 
     await db.ref().update(updates);

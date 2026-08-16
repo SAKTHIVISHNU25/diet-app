@@ -3,7 +3,8 @@ import { ServerValue } from 'firebase-admin/database';
 import { apiSuccess, handleRouteError, validationError } from '@/lib/utils/api';
 import { requireUser } from '@/lib/utils/route-auth';
 import { adminDb, PATHS } from '@/lib/firebase/admin';
-import { stripUndefined, toEntries } from '@/lib/firebase/converters';
+import { toEntries } from '@/lib/firebase/converters';
+import { encryptRecord } from '@/lib/crypto/record-crypto';
 import { foodLogBatchSchema } from '@/lib/validations/food';
 import { normalizeFoodLog } from '@/lib/data/food-logs';
 
@@ -34,7 +35,11 @@ export async function POST(request: NextRequest) {
       const id = listRef.push().key;
       if (!id) continue;
       ids.push(id);
-      updates[id] = stripUndefined({
+      // Only `log_date` and the timestamps survive as plaintext; the food
+      // name, portion and nutrition are sealed into `enc`. Sealing is bound to
+      // this uid and this id, so the row cannot be relocated. (`encryptRecord`
+      // drops undefined values, which is what `stripUndefined` did here.)
+      updates[id] = encryptRecord('food_logs', auth.user.uid, id, {
         ...item,
         created_at: ServerValue.TIMESTAMP,
         updated_at: ServerValue.TIMESTAMP,

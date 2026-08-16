@@ -8,7 +8,7 @@ import {
 } from '@/lib/utils/api';
 import { requireUser } from '@/lib/utils/route-auth';
 import { adminDb, PATHS } from '@/lib/firebase/admin';
-import { stripUndefined } from '@/lib/firebase/converters';
+import { mergeEncryptedRecord } from '@/lib/crypto/record-crypto';
 import { updatePlanMealSchema } from '@/lib/validations/diet-plan';
 import { normalizePlanMeal } from '@/lib/data/diet-plans';
 import { totalsFor } from '@/lib/diet/totals';
@@ -58,7 +58,15 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       Object.assign(update, totalsFor(parsed.data.foods));
     }
 
-    await ref.update(stripUndefined(update));
+    await ref.set(
+      mergeEncryptedRecord(
+        'diet_plan_meals',
+        auth.user.uid,
+        id,
+        existing.val(),
+        update,
+      ),
+    );
 
     const updated = await ref.get();
     return apiSuccess({ meal: normalizePlanMeal(id, auth.user.uid, updated.val()) });

@@ -8,7 +8,11 @@ import {
 } from '@/lib/utils/api';
 import { requireUser } from '@/lib/utils/route-auth';
 import { adminDb, PATHS } from '@/lib/firebase/admin';
-import { stripUndefined } from '@/lib/firebase/converters';
+import {
+  decryptRecord,
+  encryptRecord,
+  mergeEncryptedRecord,
+} from '@/lib/crypto/record-crypto';
 import { weightEntryUpdateSchema } from '@/lib/validations/progress';
 import { normalizeWeightEntry } from '@/lib/data/progress';
 
@@ -48,15 +52,19 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       return apiError('not_found', 'That weight entry no longer exists.');
     }
 
-    const current = (existing.val() ?? {}) as Record<string, unknown>;
     const newDate = parsed.data.entry_date;
 
     // The key encodes the date, so changing the date means moving the node.
     // A multi-path update makes the move atomic, and writing to the target key
     // applies the same one-weigh-in-per-day rule as the create path.
     if (newDate && newDate !== id) {
+      // The ciphertext is sealed against its record id, so a move is not a
+      // copy: unseal under the old date, reseal under the new one. Carrying the
+      // blob across verbatim would produce a record that no longer decrypts.
+      const current = decryptRecord('weight_entries', auth.user.uid, id, existing.val());
+
       await db.ref(PATHS.weightEntries(auth.user.uid)).update({
-        [newDate]: stripUndefined({
+        [newDate]: encryptRecord('weight_entries', auth.user.uid, newDate, {
           ...current,
           ...parsed.data,
           updated_at: ServerValue.TIMESTAMP,
@@ -70,8 +78,11 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       });
     }
 
-    await ref.update(
-      stripUndefined({ ...parsed.data, updated_at: ServerValue.TIMESTAMP }),
+    await ref.set(
+      mergeEncryptedRecord('weight_entries', auth.user.uid, id, existing.val(), {
+        ...parsed.data,
+        updated_at: ServerValue.TIMESTAMP,
+      }),
     );
 
     const updated = await ref.get();
