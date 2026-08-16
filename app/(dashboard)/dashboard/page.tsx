@@ -15,7 +15,8 @@ import { sumNutrition } from '@/lib/calculations/nutrition';
 import { getProfile } from '@/lib/data/profile';
 import { getLogsForDate } from '@/lib/data/food-logs';
 import { getWeightEntries, summarizeProgress } from '@/lib/data/progress';
-import { formatRelativeDate, toISODate } from '@/lib/utils';
+import { getUserToday } from '@/lib/date/server';
+import { formatRelativeDate } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'Dashboard' };
 
@@ -28,7 +29,8 @@ export default async function DashboardPage() {
   // No profile yet means signup completed but onboarding did not.
   if (!profile || !profile.onboarded) redirect('/onboarding');
 
-  const today = toISODate();
+  // The user's calendar day, not the (UTC) host's — see lib/date/server.ts.
+  const today = await getUserToday();
   const [logs, weightEntries] = await Promise.all([
     getLogsForDate(today),
     getWeightEntries(),

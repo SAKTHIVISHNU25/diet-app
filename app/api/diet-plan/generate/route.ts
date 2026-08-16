@@ -14,7 +14,7 @@ import { generatePlanSchema } from '@/lib/validations/diet-plan';
 import { calculateTargets } from '@/lib/calculations/targets';
 import { getDietPlanProvider } from '@/lib/diet/provider';
 import { normalizeProfile } from '@/lib/data/profile';
-import { toISODate } from '@/lib/utils';
+import { getUserToday } from '@/lib/date/server';
 
 /**
  * POST /api/diet-plan/generate
@@ -45,13 +45,16 @@ export async function POST(request: NextRequest) {
     const profile = normalizeProfile(uid, profileSnapshot.val());
     const targets = calculateTargets(profile);
 
+    // The plan starts on the user's day, not the (UTC) host's.
+    const today = await getUserToday();
+
     const provider = getDietPlanProvider();
     const plan = await provider.generatePlan({
       profile,
       targets,
       // Without an explicit seed, vary by day so "regenerate" gives something
       // new while a same-day retry stays stable.
-      seed: parsed.data.seed ?? deriveSeed(uid),
+      seed: parsed.data.seed ?? deriveSeed(uid, today),
     });
 
     if (plan.meals.length === 0) {
@@ -88,7 +91,7 @@ export async function POST(request: NextRequest) {
     // are sealed.
     updates[PATHS.dietPlan(uid, planId)] = encryptRecord('diet_plans', uid, planId, {
       name: '7-Day Plan',
-      start_date: toISODate(),
+      start_date: today,
       calorie_target: plan.calorieTarget,
       protein_target_g: plan.proteinTargetG,
       carbs_target_g: plan.carbsTargetG,
@@ -148,9 +151,9 @@ export async function POST(request: NextRequest) {
 }
 
 /** A stable-per-user, changes-daily seed. */
-function deriveSeed(userId: string): number {
+function deriveSeed(userId: string, today: string): number {
   let hash = 0;
-  const source = `${userId}:${toISODate()}`;
+  const source = `${userId}:${today}`;
   for (let i = 0; i < source.length; i += 1) {
     hash = (hash * 31 + source.charCodeAt(i)) % 1_000_000;
   }

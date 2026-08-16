@@ -41,12 +41,16 @@ export function formatDateShort(iso: string): string {
   });
 }
 
-/** "Today" / "Yesterday" / a short date. */
-export function formatRelativeDate(iso: string): string {
-  const today = toISODate();
-  const yesterday = toISODate(addDays(new Date(), -1));
+/**
+ * "Today" / "Yesterday" / a short date.
+ *
+ * `today` defaults to this runtime's local day, which is only correct in the
+ * browser. Server components must pass `getUserToday()` — the host clock is
+ * UTC in production and would label the wrong day.
+ */
+export function formatRelativeDate(iso: string, today: string = toISODate()): string {
   if (iso === today) return 'Today';
-  if (iso === yesterday) return 'Yesterday';
+  if (iso === toISODate(addDays(fromISODate(today), -1))) return 'Yesterday';
   return formatDateLong(iso);
 }
 

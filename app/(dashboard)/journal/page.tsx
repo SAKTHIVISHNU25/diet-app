@@ -4,6 +4,7 @@ import { JournalClient } from '@/components/journal/journal-client';
 import { PageHeader } from '@/components/shared/page-header';
 import { getProfile } from '@/lib/data/profile';
 import { getJournalEntries, summarizeJournal } from '@/lib/data/journal';
+import { getUserToday } from '@/lib/date/server';
 import { getMotivationQuote } from '@/lib/quotes/zen-quotes';
 
 export const metadata: Metadata = { title: 'Journal' };
@@ -13,12 +14,13 @@ export default async function JournalPage() {
   const profile = await getProfile();
   if (!profile?.onboarded) redirect('/onboarding');
 
-  const [entries, quote] = await Promise.all([
+  const [entries, quote, today] = await Promise.all([
     getJournalEntries(),
     getMotivationQuote(),
+    getUserToday(),
   ]);
 
-  const summary = summarizeJournal(entries);
+  const summary = summarizeJournal(entries, today);
 
   return (
     <main className="px-5 py-6">

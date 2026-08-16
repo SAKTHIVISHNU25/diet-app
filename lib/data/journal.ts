@@ -6,7 +6,7 @@ import { adminDb, PATHS } from '@/lib/firebase/admin';
 import { getUserId } from '@/lib/firebase/server';
 import { toEntries, toISOString, toStringOrNull } from '@/lib/firebase/converters';
 import { decryptRecordSafe } from '@/lib/crypto/record-crypto';
-import { addDays, toISODate } from '@/lib/utils';
+import { addDays, fromISODate, toISODate } from '@/lib/utils';
 
 /**
  * Journal entries live at `journal_entries/{uid}/{YYYY-MM-DD}`, the same shape
@@ -55,15 +55,18 @@ export function normalizeJournalEntry(
  * Summarise the journal. `entries` may arrive in any order — everything here
  * works off a date set rather than positions in the list.
  */
-export function summarizeJournal(entries: JournalEntry[]): JournalSummary {
+export function summarizeJournal(
+  entries: JournalEntry[],
+  today: string = toISODate(),
+): JournalSummary {
   const dates = new Set(entries.map((entry) => entry.entry_date));
 
-  const cutoff = toISODate(addDays(new Date(), -29));
+  const cutoff = toISODate(addDays(fromISODate(today), -29));
   const last30Days = entries.filter((entry) => entry.entry_date >= cutoff).length;
 
   return {
     entryCount: entries.length,
-    streak: countStreak(dates),
+    streak: countStreak(dates, today),
     last30Days,
     topMood: mostFrequentMood(entries),
     reflectionCount: entries.filter(hasReflection).length,
@@ -77,9 +80,9 @@ export function summarizeJournal(entries: JournalEntry[]): JournalSummary {
  * yesterday: someone with a 10-day streak who has not written *this morning*
  * still has a 10-day streak, not zero.
  */
-function countStreak(dates: Set<string>): number {
-  const today = toISODate();
-  let cursor = dates.has(today) ? new Date() : addDays(new Date(), -1);
+function countStreak(dates: Set<string>, today: string): number {
+  const start = fromISODate(today);
+  let cursor = dates.has(today) ? start : addDays(start, -1);
   let streak = 0;
 
   while (dates.has(toISODate(cursor))) {

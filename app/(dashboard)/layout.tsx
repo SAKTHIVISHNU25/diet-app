@@ -2,7 +2,9 @@ import { redirect } from 'next/navigation';
 import { MobileNav } from '@/components/shared/mobile-nav';
 import { InstallPrompt } from '@/components/shared/install-prompt';
 import { WelcomeTour } from '@/components/shared/welcome-tour';
+import { TimezoneSync } from '@/components/shared/timezone-sync';
 import { getProfile } from '@/lib/data/profile';
+import { getUserTimeZone } from '@/lib/date/server';
 import { getSessionUser } from '@/lib/firebase/server';
 
 /**
@@ -25,9 +27,14 @@ export default async function DashboardLayout({
   // already makes for its own onboarding guard — no extra round trip.
   const profile = await getProfile();
 
+  // What the server *thinks* the user's zone is; the client corrects it below
+  // and re-renders if they disagree.
+  const serverTimeZone = await getUserTimeZone();
+
   return (
     <div className="min-h-dvh bg-background">
       <div className="mx-auto w-full max-w-2xl pb-safe-nav">{children}</div>
+      <TimezoneSync serverTimeZone={serverTimeZone} />
       <MobileNav />
       <InstallPrompt />
       <WelcomeTour onboarded={profile?.onboarded === true} />

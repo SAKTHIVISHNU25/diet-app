@@ -20,12 +20,11 @@ import {
 } from '@/components/ui/select';
 import { MacroDots } from '@/components/food/macro-dots';
 import { calculateNutritionForGrams } from '@/lib/calculations/nutrition';
-import { formatNumber } from '@/lib/utils';
+import { formatNumber, toISODate } from '@/lib/utils';
 import { readApiError } from '@/lib/utils/fetch';
 
 interface FoodReviewProps {
   initialCandidates: FoodCandidate[];
-  date: string;
   notes?: string;
   alternatives: { name: string; confidence: number }[];
   onStartOver: () => void;
@@ -40,7 +39,6 @@ interface FoodReviewProps {
  */
 export function FoodReview({
   initialCandidates,
-  date,
   notes,
   alternatives,
   onStartOver,
@@ -89,11 +87,15 @@ export function FoodReview({
 
     setSaving(true);
     try {
+      // Read at save time, in the browser: the page may have been opened
+      // before local midnight, and the server's clock is UTC in production.
+      const logDate = toISODate();
+
       const payload = {
         items: ready.map((item) => {
           const nutrition = calculateNutritionForGrams(item.nutrition!, item.grams);
           return {
-            log_date: date,
+            log_date: logDate,
             meal_type: mealType,
             food_name: item.name.trim(),
             quantity: item.quantity ?? 1,

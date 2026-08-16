@@ -31,7 +31,7 @@ type Stage = 'idle' | 'analyzing' | 'review';
  * Manual entry is available at every stage, including when recognition fails,
  * so the feature is never a dead end.
  */
-export function ScanClient({ today }: { today: string }) {
+export function ScanClient() {
   const [file, setFile] = useState<File | null>(null);
   const [stage, setStage] = useState<Stage>('idle');
   const [candidates, setCandidates] = useState<FoodCandidate[]>([]);
@@ -173,7 +173,6 @@ export function ScanClient({ today }: { today: string }) {
 
           <FoodReview
             initialCandidates={candidates}
-            date={today}
             notes={result?.notes}
             alternatives={result?.alternatives ?? []}
             onStartOver={reset}

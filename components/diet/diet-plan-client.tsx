@@ -77,10 +77,22 @@ export function DietPlanClient({
   return (
     <div className="mt-6">
       <Tabs defaultValue="0">
-        <TabsList className="flex w-full overflow-x-auto">
+        {/* Seven fixed columns rather than a scroller: "Day 7" never fits on a
+            phone, so the row used to clip and scroll sideways. Narrow screens
+            get the number alone, with the full label restored once it fits. */}
+        <p className="mb-1.5 text-xs uppercase tracking-wide text-muted-foreground sm:hidden">
+          Day
+        </p>
+        <TabsList aria-label="Plan day" className="grid h-auto w-full grid-cols-7 gap-1">
           {DAYS.map((day) => (
-            <TabsTrigger key={day} value={String(day)} className="flex-1 min-w-14">
-              Day {day + 1}
+            <TabsTrigger
+              key={day}
+              value={String(day)}
+              aria-label={`Day ${day + 1}`}
+              className="min-h-11 px-0"
+            >
+              <span className="hidden sm:inline">Day&nbsp;</span>
+              {day + 1}
             </TabsTrigger>
           ))}
         </TabsList>

@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { MEAL_TYPE_LABELS, type MealType } from '@/types/meal';
 import { getProfile } from '@/lib/data/profile';
 import { getRecentLogsByDate } from '@/lib/data/food-logs';
+import { getUserToday } from '@/lib/date/server';
 import { calculateTargets } from '@/lib/calculations/targets';
 import {
   cn,
@@ -27,8 +28,9 @@ export default async function HistoryPage() {
   const profile = await getProfile();
   if (!profile?.onboarded) redirect('/onboarding');
 
-  const [days, targets] = await Promise.all([
+  const [days, today, targets] = await Promise.all([
     getRecentLogsByDate(30),
+    getUserToday(),
     Promise.resolve(calculateTargets(profile)),
   ]);
 
@@ -101,7 +103,7 @@ export default async function HistoryPage() {
                     <div className="flex items-start justify-between gap-3 px-1">
                       <div className="min-w-0">
                         <h2 className="font-semibold tracking-tight">
-                          {formatRelativeDate(day.date)}
+                          {formatRelativeDate(day.date, today)}
                         </h2>
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           {formatDateShort(day.date)}

@@ -4,7 +4,6 @@ import { ScanClient } from '@/components/food/scan-client';
 import { MedicalDisclaimer } from '@/components/shared/medical-disclaimer';
 import { PageHeader } from '@/components/shared/page-header';
 import { getProfile } from '@/lib/data/profile';
-import { toISODate } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'Scan food' };
 
@@ -22,7 +21,7 @@ export default async function ScanPage() {
         description="Take a photo or choose one from your gallery. You confirm the result before anything is added to your log."
       />
 
-      <ScanClient today={toISODate()} />
+      <ScanClient />
 
       <MedicalDisclaimer className="mt-8" />
     </main>

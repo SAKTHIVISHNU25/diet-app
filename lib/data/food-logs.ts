@@ -13,7 +13,7 @@ import {
   toStringOrNull,
 } from '@/lib/firebase/converters';
 import { decryptRecordSafe } from '@/lib/crypto/record-crypto';
-import { addDays, toISODate } from '@/lib/utils';
+import { getUserDate } from '@/lib/date/server';
 
 /**
  * Food log reads.
@@ -57,7 +57,7 @@ export async function getRecentLogsByDate(
   const uid = await getUserId();
   if (!uid) return [];
 
-  const since = toISODate(addDays(new Date(), -days));
+  const since = await getUserDate(-days);
 
   try {
     const snapshot = await adminDb()
