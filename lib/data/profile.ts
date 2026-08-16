@@ -42,6 +42,7 @@ export function normalizeProfile(id: string, data: unknown): Profile {
     gender: (row.gender as Profile['gender']) ?? 'other',
     height_cm: toNumber(row.height_cm),
     weight_kg: toNumber(row.weight_kg),
+    starting_weight_kg: toNullableNumber(row.starting_weight_kg),
     target_weight_kg: toNullableNumber(row.target_weight_kg),
     activity_level: (row.activity_level as Profile['activity_level']) ?? 'sedentary',
     goal: (row.goal as Profile['goal']) ?? 'maintain_weight',

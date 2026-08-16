@@ -2,7 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { CalendarDays, Camera, History, Home, LineChart } from 'lucide-react';
+import {
+  CalendarDays,
+  Camera,
+  History,
+  Home,
+  LineChart,
+  NotebookPen,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
@@ -10,6 +17,7 @@ const NAV_ITEMS = [
   { href: '/scan', label: 'Scan', icon: Camera },
   { href: '/diet-plan', label: 'Diet', icon: CalendarDays },
   { href: '/history', label: 'History', icon: History },
+  { href: '/journal', label: 'Journal', icon: NotebookPen },
   { href: '/progress', label: 'Progress', icon: LineChart },
 ] as const;
 
@@ -34,7 +42,7 @@ export function MobileNav() {
             pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
-            <li key={item.href} className="flex-1">
+            <li key={item.href} className="min-w-0 flex-1">
               <Link
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
@@ -45,8 +53,12 @@ export function MobileNav() {
                     : 'text-muted-foreground hover:text-foreground',
                 )}
               >
-                <item.icon className="size-5" aria-hidden />
-                {item.label}
+                <item.icon className="size-5 shrink-0" aria-hidden />
+                {/* Six targets on a 320px screen leaves ~53px each, so the
+                    label has to be allowed to clip rather than push the bar. */}
+                <span className="w-full truncate px-0.5 text-center">
+                  {item.label}
+                </span>
               </Link>
             </li>
           );

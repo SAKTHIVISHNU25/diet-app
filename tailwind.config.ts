@@ -54,6 +54,15 @@ const config: Config = {
         protein: 'hsl(var(--protein))',
         carbs: 'hsl(var(--carbs))',
         fat: 'hsl(var(--fat))',
+        // Journal moods. Declared with <alpha-value> so the tinted fills
+        // (`bg-mood-good/15`) resolve to real alpha rather than a fallback.
+        mood: {
+          great: 'hsl(var(--mood-great) / <alpha-value>)',
+          good: 'hsl(var(--mood-good) / <alpha-value>)',
+          okay: 'hsl(var(--mood-okay) / <alpha-value>)',
+          low: 'hsl(var(--mood-low) / <alpha-value>)',
+          rough: 'hsl(var(--mood-rough) / <alpha-value>)',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

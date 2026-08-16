@@ -42,7 +42,7 @@ export default async function LandingPage() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-5 py-10">
       <header className="flex-1">
-        <MyLyfLogo className="mb-10" />
+        <MyLyfLogo className="mb-10" tagline />
 
         <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
           Know what you eat, without the guesswork.

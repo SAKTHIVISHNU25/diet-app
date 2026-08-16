@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ProgressSummary, WeightEntry } from '@/types/progress';
+import type { MotivationQuote } from '@/types/quote';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,6 +19,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
+import { MotivationNote } from '@/components/progress/motivation-note';
 import { WeightChart } from '@/components/progress/weight-chart';
 import {
   changeTone,
@@ -30,14 +33,17 @@ import { readApiError } from '@/lib/utils/fetch';
 export function ProgressClient({
   entries,
   summary,
+  quote,
 }: {
   entries: WeightEntry[];
   summary: ProgressSummary;
+  quote: MotivationQuote;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<WeightEntry | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<WeightEntry | null>(null);
   const [, startTransition] = useTransition();
 
   const refresh = () => startTransition(() => router.refresh());
@@ -51,6 +57,7 @@ export function ProgressClient({
         return;
       }
       toast.success('Entry removed');
+      setConfirming(null);
       refresh();
     } catch {
       toast.error('Network problem. Please check your connection and try again.');
@@ -138,6 +145,8 @@ export function ProgressClient({
 
       <WeightChart entries={entries} goalWeight={summary.goalWeight} />
 
+      <MotivationNote initialQuote={quote} />
+
       <Card>
         <CardContent className="p-4">
           <div className="flex items-baseline justify-between">
@@ -157,7 +166,15 @@ export function ProgressClient({
               </p>
             </div>
           ) : (
-            <ul className="mt-1 divide-y">
+            // Fixed to exactly two rows (2 × 3.75rem) rather than a max-height,
+            // so the card is the same size whether there are 3 weigh-ins or 300
+            // and adding one never shifts the page below it.
+            <ul
+              className="scrollbar-slim mt-1 h-[7.5rem] divide-y overflow-y-auto overscroll-contain pr-1"
+              tabIndex={0}
+              role="list"
+              aria-label="Weigh-in history"
+            >
               {rows.map(({ entry, step }) => (
                 <li key={entry.id} className="flex items-center gap-3 py-2.5">
                   <div className="min-w-0 flex-1">
@@ -201,7 +218,7 @@ export function ProgressClient({
                     variant="ghost"
                     size="icon"
                     className="size-9 text-muted-foreground hover:text-destructive"
-                    onClick={() => handleDelete(entry)}
+                    onClick={() => setConfirming(entry)}
                     disabled={deletingId === entry.id}
                     aria-label={`Delete entry from ${formatDateShort(entry.entry_date)}`}
                   >
@@ -217,6 +234,29 @@ export function ProgressClient({
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDeleteDialog
+        open={confirming !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirming(null);
+        }}
+        title="Delete this weigh-in?"
+        description={
+          confirming ? (
+            <>
+              <span className="font-medium text-foreground">
+                {formatNumber(confirming.weight_kg, 1)} kg
+              </span>{' '}
+              on {formatDateShort(confirming.entry_date)} will be removed from your
+              trend. This cannot be undone.
+            </>
+          ) : null
+        }
+        pending={confirming !== null && deletingId === confirming.id}
+        onConfirm={() => {
+          if (confirming) void handleDelete(confirming);
+        }}
+      />
 
       <WeightSheet
         open={open}

@@ -244,6 +244,49 @@ Update or delete a weigh-in. Responses are `{ "entry": {...} }` and `{ "deleted"
 
 ---
 
+## `GET /api/journal`
+
+**Response `200`** — `{ "entries": [...] }`, newest first.
+
+---
+
+## `POST /api/journal`
+
+Write a day's journal entry. Stored at `journal_entries/{uid}/{entry_date}`, so **the date is the key** — saving twice for one date rewrites that day rather than creating a second entry.
+
+**Request**
+
+```json
+{
+  "entry_date": "2026-08-16",
+  "mood": "good",
+  "content": "Stayed under target.",
+  "went_well": "Hit my protein target.",
+  "went_wrong": "Skipped lunch, over-ate at 9pm.",
+  "to_improve": "Prep lunch the night before."
+}
+```
+
+`content` is ≤ 5000 characters and each review section (`went_well`, `went_wrong`, `to_improve`) is ≤ 1000. All are optional individually, but **at least one must be non-empty** — a day with nothing written is rejected. `mood` is optional and must be one of `great`, `good`, `okay`, `low`, `rough` (or `null`).
+
+**Response `201`** — `{ "entry": { ... } }`
+
+**Errors**: `unauthenticated`, `invalid_request`, `database_error`
+
+---
+
+## `PATCH /api/journal/[id]` · `DELETE /api/journal/[id]`
+
+Update or delete a journal entry. Responses are `{ "entry": {...} }` and `{ "deleted": true }`.
+
+As with weigh-ins, **`[id]` is the date** (`YYYY-MM-DD`). Changing `entry_date` moves the node in one atomic multi-path update, re-sealing the record under the new key.
+
+A PATCH carries only the fields being changed and does *not* apply the "at least one field" rule — that is what lets a review section be cleared back to `null` on an entry that still has free text.
+
+**Errors**: `unauthenticated`, `invalid_request`, `not_found`, `database_error`
+
+---
+
 ## `POST /api/diet-plan/generate`
 
 Generate and persist a 7-day plan from the signed-in user's profile. Uses the template planner — **no AI API key required**.

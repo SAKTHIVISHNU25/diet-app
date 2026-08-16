@@ -59,13 +59,13 @@ describe('filterFoods', () => {
   it('allows eggs but not meat for eggetarians', () => {
     const foods = filterFoods('eggetarian', [], []);
     expect(foods.some((food) => food.id === 'eggs')).toBe(true);
-    expect(foods.some((food) => food.id === 'salmon')).toBe(false);
+    expect(foods.some((food) => food.id === 'fish-curry')).toBe(false);
   });
 
   it('removes allergens, matching in both directions', () => {
     expect(
       filterFoods('non_vegetarian', ['peanut'], []).some(
-        (food) => food.id === 'peanut-butter',
+        (food) => food.id === 'peanuts',
       ),
     ).toBe(false);
 
@@ -173,7 +173,7 @@ describe('generateTemplatePlan', () => {
 
     expect(names.some((name) => name.includes('paneer'))).toBe(false);
     expect(names.some((name) => name.includes('almond'))).toBe(false);
-    expect(names.some((name) => name.includes('yogurt'))).toBe(false);
+    expect(names.some((name) => name.includes('curd'))).toBe(false);
   });
 
   it('respects a vegan preference across every meal', () => {
@@ -187,7 +187,7 @@ describe('generateTemplatePlan', () => {
       meal.foods.map((food) => food.name.toLowerCase()),
     );
 
-    for (const banned of ['chicken', 'salmon', 'egg', 'paneer', 'greek yogurt']) {
+    for (const banned of ['chicken', 'fish', 'egg', 'paneer', 'curd', 'ghee']) {
       expect(names.some((name) => name.includes(banned))).toBe(false);
     }
   });

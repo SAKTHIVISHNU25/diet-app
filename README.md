@@ -18,6 +18,8 @@ Built as a private app for a small number of users, on free infrastructure, with
 - **7-day diet plan** generated offline from your targets, dietary preference and allergies. Meals can be edited or swapped.
 - **Weight tracking** with a trend chart and goal line.
 - **30-day history** of everything you logged.
+- **Daily journal** — one encrypted entry per day with a mood and writing prompts, browsed through a month calendar that marks the days you wrote, plus a streak, a mood mix summary and search across everything you have written.
+- **Daily review** — a second tab on the journal page for what went well, what went wrong and what needs to improve, with one-tap suggestions, yesterday's focus carried forward, and its own calendar of reviewed days. Stored on the same day's entry, shown only in its own tab.
 - **Installable PWA** — add to your home screen from Chrome and it launches standalone with no address bar.
 
 ---

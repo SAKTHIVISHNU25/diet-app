@@ -9,6 +9,7 @@ import { MealSections } from '@/components/dashboard/meal-sections';
 import { WeightCard } from '@/components/dashboard/weight-card';
 import { MedicalDisclaimer } from '@/components/shared/medical-disclaimer';
 import { PageHeader } from '@/components/shared/page-header';
+import { ThemeToggleButton } from '@/components/theme/theme-toggle-button';
 import { calculateTargets } from '@/lib/calculations/targets';
 import { sumNutrition } from '@/lib/calculations/nutrition';
 import { getProfile } from '@/lib/data/profile';
@@ -39,6 +40,7 @@ export default async function DashboardPage() {
     weightEntries,
     profile.weight_kg,
     profile.target_weight_kg,
+    profile.starting_weight_kg,
   );
 
   const firstName = profile.full_name.split(' ')[0] || 'there';
@@ -49,11 +51,14 @@ export default async function DashboardPage() {
         eyebrow={formatRelativeDate(today)}
         title={`Hi, ${firstName}`}
         action={
-          <Button asChild variant="ghost" size="icon" aria-label="Profile settings">
-            <Link href="/profile">
-              <Settings className="size-5" aria-hidden />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-1">
+            <ThemeToggleButton />
+            <Button asChild variant="ghost" size="icon" aria-label="Profile settings">
+              <Link href="/profile">
+                <Settings className="size-5" aria-hidden />
+              </Link>
+            </Button>
+          </div>
         }
       />
 

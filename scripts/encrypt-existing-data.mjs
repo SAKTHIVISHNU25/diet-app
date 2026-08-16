@@ -56,6 +56,7 @@ const COLLECTIONS = {
   diet_plans: ['is_active', 'created_at', 'updated_at'],
   diet_plan_meals: ['plan_id', 'created_at', 'updated_at'],
   weight_entries: ['entry_date', 'created_at', 'updated_at'],
+  journal_entries: ['entry_date', 'created_at', 'updated_at'],
 };
 
 function loadKey() {

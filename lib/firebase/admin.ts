@@ -131,6 +131,8 @@ export const PATHS = {
   dietPlanMeal: (uid: string, id: string) => `diet_plan_meals/${uid}/${id}`,
   weightEntries: (uid: string) => `weight_entries/${uid}`,
   weightEntry: (uid: string, date: string) => `weight_entries/${uid}/${date}`,
+  journalEntries: (uid: string) => `journal_entries/${uid}`,
+  journalEntry: (uid: string, date: string) => `journal_entries/${uid}/${date}`,
   foodCache: 'food_cache',
   foodCacheEntry: (queryKey: string) => `food_cache/${encodeKey(queryKey)}`,
 } as const;

@@ -34,6 +34,7 @@ test.describe('authentication routing', () => {
     '/scan',
     '/diet-plan',
     '/history',
+    '/journal',
     '/progress',
     '/profile',
     '/onboarding',
@@ -73,6 +74,7 @@ test.describe('API authorisation', () => {
   const ENDPOINTS = [
     '/api/food/log',
     '/api/progress',
+    '/api/journal',
     '/api/nutrition/search?q=rice',
   ];
 

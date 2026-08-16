@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { MacroDots } from '@/components/food/macro-dots';
 import { calculateNutritionForGrams } from '@/lib/calculations/nutrition';
 import { formatNumber } from '@/lib/utils';
 import { readApiError } from '@/lib/utils/fetch';
@@ -398,40 +399,33 @@ function CandidateCard({ item, alternatives, onChange, onRemove }: CandidateCard
         </div>
 
         {nutrition ? (
-          <dl className="mt-4 grid grid-cols-4 gap-2 rounded-xl bg-muted/60 p-3 text-center">
-            <Stat label="Calories" value={formatNumber(nutrition.calories)} suffix=" kcal" />
-            <Stat label="Protein" value={formatNumber(nutrition.protein_g, 1)} suffix=" g" />
-            <Stat label="Carbs" value={formatNumber(nutrition.carbs_g, 1)} suffix=" g" />
-            <Stat label="Fat" value={formatNumber(nutrition.fat_g, 1)} suffix=" g" />
-          </dl>
+          <div className="mt-4 rounded-xl border bg-muted/40 p-4">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Calories
+              </p>
+              <p className="tabular mt-0.5 text-2xl font-semibold leading-none">
+                {formatNumber(nutrition.calories)}
+                <span className="ml-1 text-sm font-medium text-muted-foreground">
+                  kcal
+                </span>
+              </p>
+            </div>
+            <MacroDots
+              className="mt-3 border-t pt-3"
+              protein={nutrition.protein_g}
+              carbs={nutrition.carbs_g}
+              fat={nutrition.fat_g}
+            />
+          </div>
         ) : (
-          <p className="mt-4 rounded-lg bg-muted/60 p-3 text-sm text-muted-foreground">
+          <p className="mt-4 rounded-xl border border-dashed p-3 text-sm text-muted-foreground">
             No nutrition data yet. Press &ldquo;Get nutrition&rdquo; or use the food
             database search.
           </p>
         )}
       </CardContent>
     </Card>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  suffix,
-}: {
-  label: string;
-  value: string;
-  suffix?: string;
-}) {
-  return (
-    <div>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="tabular text-sm font-medium">
-        {value}
-        {suffix}
-      </dd>
-    </div>
   );
 }
 

@@ -33,18 +33,25 @@ export async function getWeightEntries(): Promise<WeightEntry[]> {
 }
 
 /**
- * Summarise weight progress. When no weigh-in exists yet, the profile weight
- * stands in for both start and current so the UI still has something to show.
+ * Summarise weight progress.
+ *
+ * The baseline is the weight captured at onboarding (`starting_weight_kg`),
+ * never a weigh-in. Deriving it from the earliest entry made the start move
+ * every time someone logged a weight — with a single weigh-in, start and
+ * current were the same number and the change was permanently 0.
+ *
+ * Profiles created before that field existed fall back to the profile weight,
+ * which is the onboarding value for anyone who has not edited it since.
  */
 export function summarizeProgress(
   entries: WeightEntry[],
   profileWeight: number,
   goalWeight: number | null,
+  baselineWeight?: number | null,
 ): ProgressSummary {
-  const first = entries[0];
   const last = entries[entries.length - 1];
 
-  const startingWeight = first?.weight_kg ?? profileWeight;
+  const startingWeight = baselineWeight ?? profileWeight;
   const currentWeight = last?.weight_kg ?? profileWeight;
 
   return {

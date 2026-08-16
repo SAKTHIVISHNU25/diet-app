@@ -27,6 +27,10 @@ Firebase Realtime Database — a single JSON tree, not tables. Security Rules li
 │     └── {uid}
 │           └── {YYYY-MM-DD}          ← date IS the key
 │
+├── journal_entries
+│     └── {uid}
+│           └── {YYYY-MM-DD}          ← date IS the key
+│
 └── food_cache
       └── {normalised_query}          ← shared, no owner
 ```
@@ -152,6 +156,28 @@ Changing an entry's date means *moving the node*. `PATCH /api/progress/[id]` doe
 
 ---
 
+## `journal_entries/{uid}/{YYYY-MM-DD}`
+
+| Field | Type | Notes |
+|---|---|---|
+| `entry_date` | string | Same as the key; stored for convenience |
+| `mood` | string \| null | One of `great`, `good`, `okay`, `low`, `rough` |
+| `content` | string | Free text, ≤ 5000 chars |
+| `went_well` | string \| null | Daily review, ≤ 1000 chars |
+| `went_wrong` | string \| null | Daily review, ≤ 1000 chars |
+| `to_improve` | string \| null | Daily review, ≤ 1000 chars |
+| `created_at` / `updated_at` | number | |
+
+Same shape as `weight_entries`, and for the same reason: **the date is the key**, so a day has exactly one entry and re-saving edits it instead of stacking a second one. Entries sort chronologically without an index.
+
+The free text and the three-part review share one node per day: the Journal and Daily review tabs are two ways of writing the same record, which is why a review-only day still counts once towards the streak. A day must carry *something* — free text or at least one review section — or the write is rejected.
+
+Everything except the date is sealed inside `enc` — free text about how someone's day went is the most sensitive thing the app stores, so nothing about it beyond *that a day was written* is visible in the database. `PATCH /api/journal/[id]` re-dates an entry with the same atomic move-and-reseal the weigh-in route uses.
+
+The `enc` size cap is 32 KB here rather than 4 KB: 5000 characters of free text plus three 1000-character review sections, in multi-byte script and then base64, does not fit in the smaller budget.
+
+---
+
 ## `food_cache/{key}`
 
 Shared, non-user-owned cache of normalized USDA lookups. Readable and writable by any signed-in user — it is public reference data with nothing private in it, which is also why it is left unencrypted: there is nothing to protect, and per-user keys would defeat the point of a shared cache.
@@ -198,6 +224,7 @@ What stays readable is only what the database itself has to understand:
 | `diet_plans/{uid}/{pushId}` | `is_active`, `created_at`, `updated_at` | name, start date, calorie and macro targets, generator |
 | `diet_plan_meals/{uid}/{pushId}` | `plan_id`, `created_at`, `updated_at` | name, foods, macros, day index, meal type, sort order |
 | `weight_entries/{uid}/{date}` | `entry_date`, `created_at`, `updated_at` | weight, note |
+| `journal_entries/{uid}/{date}` | `entry_date`, `created_at`, `updated_at` | mood, entry text, all three review sections |
 | `food_cache/{key}` | **everything** | nothing |
 
 The exclusions are deliberate, not oversights:

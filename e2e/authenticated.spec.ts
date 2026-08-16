@@ -54,6 +54,7 @@ test('bottom navigation reaches every section', async ({ page }) => {
     ['Scan', /\/scan/],
     ['Diet', /\/diet-plan/],
     ['History', /\/history/],
+    ['Journal', /\/journal/],
     ['Progress', /\/progress/],
     ['Home', /\/dashboard/],
   ] as const) {
@@ -116,6 +117,66 @@ test('a weight entry can be added and appears in the list', async ({ page }) => 
   await page.getByRole('button', { name: 'Save' }).click();
 
   await expect(page.getByText('72.4 kg').first()).toBeVisible({ timeout: 15_000 });
+});
+
+test('a journal entry can be written and appears in the list', async ({ page }) => {
+  await page.goto('/journal');
+
+  // The day panel offers "Write today's entry" until the day is written and an
+  // edit button afterwards — either opens the same sheet, so accept both.
+  await page
+    .getByRole('button', { name: /write today's entry|edit entry from/i })
+    .first()
+    .click();
+  await page.getByRole('button', { name: 'Good' }).click();
+
+  const text = `Steady day, hit my protein target. ${Date.now()}`;
+  await page.getByLabel('Entry').fill(text);
+  await page.getByRole('button', { name: 'Save' }).click();
+
+  await expect(page.getByText(text).first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('Good').first()).toBeVisible();
+});
+
+test('the daily review saves all three sections and stays out of the journal', async ({
+  page,
+}) => {
+  await page.goto('/journal');
+  await page.getByRole('tab', { name: /daily review/i }).click();
+
+  const stamp = String(Date.now());
+  await page.getByLabel('What went well').fill(`Protein target hit ${stamp}`);
+  await page.getByLabel('What went wrong').fill('Skipped the evening walk');
+  await page.getByLabel('What needs to improve').fill('Prep lunch the night before');
+  await page.getByRole('button', { name: /save review|update review/i }).click();
+
+  await expect(page.getByText(/reviewed/i).first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByLabel('What went well')).toHaveValue(
+    `Protein target hit ${stamp}`,
+  );
+
+  // The review shares a record with the day's entry but never appears in the
+  // journal tab — the two are separate views on purpose.
+  await page.getByRole('tab', { name: 'Journal' }).click();
+  await expect(page.getByText('Prep lunch the night before')).toHaveCount(0);
+});
+
+test('the day picker steps back and opens the calendar', async ({ page }) => {
+  await page.goto('/journal');
+
+  // The arrows cover the common case without opening anything.
+  await page.getByRole('button', { name: 'Previous day' }).click();
+  await expect(
+    page.getByRole('button', { name: /write this day|edit entry from/i }).first(),
+  ).toBeVisible();
+
+  // The full month grid lives behind the calendar button.
+  await page.getByRole('button', { name: /open the calendar/i }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.getByRole('button', { name: 'Previous month' }).click();
+  await page.getByRole('button', { name: /^1 / }).first().click();
+
+  await expect(page.getByRole('dialog')).toBeHidden();
 });
 
 test('profile shows derived targets and the formula note', async ({ page }) => {

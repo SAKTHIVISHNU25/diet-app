@@ -1,8 +1,32 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import { Toaster } from 'sonner';
 import { ServiceWorkerRegistrar } from '@/components/shared/service-worker-registrar';
+import { ThemeProvider, THEME_STORAGE_KEY } from '@/components/theme/theme-provider';
+import { ThemedToaster } from '@/components/theme/themed-toaster';
 import './globals.css';
+
+/**
+ * Runs before first paint so a dark-theme user never sees a white flash.
+ * Dark is the default: only an explicit stored choice can turn it off.
+ * Deliberately tiny and dependency-free — it must stay render-blocking.
+ */
+const themeScript = `
+(function () {
+  try {
+    var stored = localStorage.getItem('${THEME_STORAGE_KEY}');
+    var dark = stored === 'dark' || !stored || (stored === 'system' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var root = document.documentElement;
+    if (dark) root.classList.add('dark');
+    root.style.colorScheme = dark ? 'dark' : 'light';
+    // Painted before globals.css loads, otherwise the first frame is the
+    // browser's white canvas. Must match --background in app/globals.css.
+    root.style.backgroundColor = dark ? 'hsl(315 22% 7%)' : 'hsl(320 30% 99%)';
+  } catch (e) {
+    document.documentElement.style.backgroundColor = 'hsl(315 22% 7%)';
+  }
+})();
+`;
 
 const inter = Inter({
   subsets: ['latin'],
@@ -30,10 +54,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#160e14' },
-  ],
+  // Dark is the default theme, so the browser chrome matches it unconditionally.
+  themeColor: '#160e14',
   width: 'device-width',
   initialScale: 1,
   // Users must be able to zoom — capping this would fail WCAG 1.4.4.
@@ -46,10 +68,15 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className={`${inter.variable} font-sans`}>
-        {children}
-        <Toaster position="top-center" richColors closeButton />
-        <ServiceWorkerRegistrar />
+        <ThemeProvider>
+          {children}
+          <ThemedToaster />
+          <ServiceWorkerRegistrar />
+        </ThemeProvider>
       </body>
     </html>
   );

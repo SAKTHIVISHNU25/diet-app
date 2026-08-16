@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import type { FoodLog } from '@/types/meal';
 import { Button } from '@/components/ui/button';
 import { EditFoodLogSheet } from '@/components/food/edit-food-log-sheet';
+import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { MacroDots } from '@/components/food/macro-dots';
 import { formatNumber } from '@/lib/utils';
 import { readApiError } from '@/lib/utils/fetch';
@@ -16,6 +17,7 @@ export function FoodLogList({ logs }: { logs: FoodLog[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState<FoodLog | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<FoodLog | null>(null);
   const [, startTransition] = useTransition();
 
   async function handleDelete(log: FoodLog) {
@@ -29,6 +31,7 @@ export function FoodLogList({ logs }: { logs: FoodLog[] }) {
       }
 
       toast.success(`Removed ${log.food_name}`);
+      setConfirming(null);
       startTransition(() => router.refresh());
     } catch {
       toast.error('Network problem. Please check your connection and try again.');
@@ -87,7 +90,7 @@ export function FoodLogList({ logs }: { logs: FoodLog[] }) {
               variant="ghost"
               size="icon"
               className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
-              onClick={() => handleDelete(log)}
+              onClick={() => setConfirming(log)}
               disabled={deletingId === log.id}
               aria-label={`Delete ${log.food_name}`}
             >
@@ -100,6 +103,30 @@ export function FoodLogList({ logs }: { logs: FoodLog[] }) {
           </li>
         ))}
       </ul>
+
+      <ConfirmDeleteDialog
+        open={confirming !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirming(null);
+        }}
+        title="Remove this food?"
+        description={
+          confirming ? (
+            <>
+              <span className="font-medium text-foreground">
+                {confirming.food_name}
+              </span>{' '}
+              and its {formatNumber(confirming.calories)} kcal will come off this
+              meal. This cannot be undone.
+            </>
+          ) : null
+        }
+        confirmLabel="Remove"
+        pending={confirming !== null && deletingId === confirming.id}
+        onConfirm={() => {
+          if (confirming) void handleDelete(confirming);
+        }}
+      />
 
       <EditFoodLogSheet
         log={editing}

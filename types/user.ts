@@ -21,6 +21,12 @@ export interface Profile {
   gender: Gender;
   height_cm: number;
   weight_kg: number;
+  /**
+   * The weight recorded at onboarding, frozen. Progress is measured against
+   * this, so later profile edits and weigh-ins must never overwrite it.
+   * Null on profiles created before this field existed.
+   */
+  starting_weight_kg: number | null;
   target_weight_kg: number | null;
   activity_level: ActivityLevel;
   goal: GoalType;

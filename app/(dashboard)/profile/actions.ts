@@ -53,13 +53,23 @@ export async function saveProfile(
   try {
     const ref = adminDb().ref(PATHS.profile(uid));
     const existing = await ref.get();
+    const existingRow = (existing.val() ?? {}) as Record<string, unknown>;
+
+    // The baseline is written once and then left alone — editing your current
+    // weight here corrects today's number, it does not rewrite where you began.
+    const existingBaseline = existingRow.starting_weight_kg;
+    const startingWeight =
+      typeof existingBaseline === 'number' && Number.isFinite(existingBaseline)
+        ? existingBaseline
+        : parsed.data.weight_kg;
 
     await ref.update(
       stripUndefined({
         ...parsed.data,
+        starting_weight_kg: startingWeight,
         onboarded: true,
         created_at: existing.exists()
-          ? (existing.val()?.created_at ?? ServerValue.TIMESTAMP)
+          ? (existingRow.created_at ?? ServerValue.TIMESTAMP)
           : ServerValue.TIMESTAMP,
         updated_at: ServerValue.TIMESTAMP,
       }),

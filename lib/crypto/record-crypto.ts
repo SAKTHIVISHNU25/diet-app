@@ -22,6 +22,7 @@ import {
  *   diet_plan_meals  plan_id    — orderByChild + equalTo
  *   diet_plans       is_active  — .indexOn, selects the current plan
  *   weight_entries   entry_date — it IS the node key, so already exposed
+ *   journal_entries  entry_date — same: the date is the node key
  *   all              created_at / updated_at — ServerValue.TIMESTAMP sentinels
  *
  * These are dates and opaque push ids. They leak that a user logged food on a
@@ -36,7 +37,8 @@ export type EncryptedCollection =
   | 'food_logs'
   | 'diet_plans'
   | 'diet_plan_meals'
-  | 'weight_entries';
+  | 'weight_entries'
+  | 'journal_entries';
 
 /** The key holding the sealed remainder of each record. */
 export const ENCRYPTED_FIELD = 'enc';
@@ -48,6 +50,7 @@ const PLAINTEXT_FIELDS: Record<EncryptedCollection, readonly string[]> = {
   diet_plans: ['is_active', ...ALWAYS_PLAINTEXT],
   diet_plan_meals: ['plan_id', ...ALWAYS_PLAINTEXT],
   weight_entries: ['entry_date', ...ALWAYS_PLAINTEXT],
+  journal_entries: ['entry_date', ...ALWAYS_PLAINTEXT],
 };
 
 /**

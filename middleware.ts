@@ -24,6 +24,7 @@ const PROTECTED_PREFIXES = [
   '/scan',
   '/diet-plan',
   '/history',
+  '/journal',
   '/progress',
   '/profile',
   '/onboarding',

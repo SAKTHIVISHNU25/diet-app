@@ -52,17 +52,38 @@ export function MyLyfMark({ className }: { className?: string }) {
   );
 }
 
+/** The brand line. Keep it identical everywhere it appears. */
+export const MYLYF_TAGLINE = 'Your life. Your wellbeing. One place.';
+
 /**
  * Mark in a rounded tile, followed by the wordmark. Used in the landing and
  * auth headers.
  */
-export function MyLyfLogo({ className }: { className?: string }) {
+export function MyLyfLogo({
+  className,
+  tagline,
+}: {
+  className?: string;
+  /** Show the brand line beneath the wordmark. */
+  tagline?: boolean;
+}) {
   return (
-    <span className={cn('flex items-center gap-2', className)}>
-      <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-        <MyLyfMark className="size-6" />
+    <span className={cn('flex items-center gap-2.5', className)}>
+      <span
+        className={cn(
+          'flex shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground',
+          tagline ? 'size-11' : 'size-9',
+        )}
+      >
+        <MyLyfMark className={tagline ? 'size-7' : 'size-6'} />
       </span>
-      <MyLyfWordmark />
+
+      <span className="flex flex-col">
+        <MyLyfWordmark className={tagline ? 'leading-tight' : undefined} />
+        {tagline ? (
+          <span className="text-xs text-muted-foreground">{MYLYF_TAGLINE}</span>
+        ) : null}
+      </span>
     </span>
   );
 }

@@ -5,6 +5,7 @@ import { ProfileForm } from '@/components/profile/profile-form';
 import { TargetsCard } from '@/components/profile/targets-card';
 import { MedicalDisclaimer } from '@/components/shared/medical-disclaimer';
 import { PageHeader } from '@/components/shared/page-header';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { getProfile } from '@/lib/data/profile';
 import { calculateTargets } from '@/lib/calculations/targets';
 import { getSessionUser } from '@/lib/firebase/server';
@@ -30,6 +31,12 @@ export default async function ProfilePage() {
       </p>
 
       <ProfileForm profile={profile} />
+
+      <h2 className="mt-8 text-lg font-semibold tracking-tight">Appearance</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        System follows your device&apos;s light or dark setting.
+      </p>
+      <ThemeToggle className="mt-3" />
 
       <div className="mt-8">
         <SignOutButton />
