@@ -419,6 +419,16 @@ function CandidateCard({ item, alternatives, onChange, onRemove }: CandidateCard
               carbs={nutrition.carbs_g}
               fat={nutrition.fat_g}
             />
+            {/* Every macro above is portion x density. Showing the density
+                makes a wrong food match visible — otherwise an implausible
+                protein figure looks like a portion problem. */}
+            <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">
+              Based on {formatNumber(item.grams)} g at{' '}
+              {formatNumber(item.nutrition!.proteinPer100g)} g protein,{' '}
+              {formatNumber(item.nutrition!.carbsPer100g)} g carbs and{' '}
+              {formatNumber(item.nutrition!.fatPer100g)} g fat per 100 g. Change the
+              food name and re-check if that does not match.
+            </p>
           </div>
         ) : (
           <p className="mt-4 rounded-xl border border-dashed p-3 text-sm text-muted-foreground">

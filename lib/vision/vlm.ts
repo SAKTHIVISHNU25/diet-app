@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { z } from 'zod';
-import { suggestPortion } from './portions';
+import { clampPortion, suggestPortion } from './portions';
 import {
   CONFIDENCE_THRESHOLD,
   VisionError,
@@ -211,19 +211,28 @@ export class VlmFoodProvider implements FoodVisionProvider {
       .map((food) => {
         const confidence = food.confidence ?? 0.5;
 
-        // Trust the model's portion when it gave one, otherwise fall back to
-        // the category table. Recording which it was keeps the UI honest.
+        // Use the model's portion when it gave one, otherwise fall back to the
+        // category table. Recording which it was keeps the UI honest.
+        //
+        // Either way the number is bounded to a plausible weight for the food:
+        // macros are derived from grams alone, so an overestimated portion
+        // inflates protein, carbs, fat and calories in lockstep.
         const hasModelPortion =
           typeof food.portion_g === 'number' && food.portion_g > 0;
         const fallback = suggestPortion(food.name);
+        const portion = hasModelPortion
+          ? clampPortion(food.name, food.portion_g!)
+          : { grams: fallback.grams, clamped: false };
 
         return {
           name: titleCase(food.name),
           confidence: round3(confidence),
-          estimatedGrams: hasModelPortion ? Math.round(food.portion_g!) : fallback.grams,
-          estimatedPortion: hasModelPortion
-            ? 'estimated from the photo'
-            : fallback.label,
+          estimatedGrams: portion.grams,
+          estimatedPortion: !hasModelPortion
+            ? fallback.label
+            : portion.clamped
+              ? 'adjusted to a realistic serving size'
+              : 'estimated from the photo',
           portionSource: (hasModelPortion ? 'model' : 'category_default') as 'model' | 'category_default',
           rawLabel: food.name,
         };

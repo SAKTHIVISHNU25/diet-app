@@ -7,7 +7,12 @@ import {
 import { rankResults } from '@/lib/usda/search';
 import type { UsdaFood } from '@/lib/usda/types';
 import { humanizeFoodLabel, normalizeFoodQuery, seededRandom } from '@/lib/utils';
-import { suggestPortion, DEFAULT_PORTION_GRAMS } from '@/lib/vision/portions';
+import {
+  suggestPortion,
+  clampPortion,
+  plausibleRange,
+  DEFAULT_PORTION_GRAMS,
+} from '@/lib/vision/portions';
 
 describe('normalizeUsdaFood', () => {
   it('reads the flat search-result nutrient shape', () => {
@@ -199,6 +204,51 @@ describe('suggestPortion', () => {
     const result = suggestPortion('');
     expect(result.grams).toBeGreaterThan(0);
     expect(result.label).toBeTruthy();
+  });
+
+  it('sizes South Indian items per piece, not per plate', () => {
+    expect(suggestPortion('plain dosa').grams).toBe(90);
+    expect(suggestPortion('idli').grams).toBe(45);
+  });
+});
+
+describe('clampPortion', () => {
+  it('bounds an overestimated single serving', () => {
+    // The reported case: a plain dosa read as 350 g, which is ~3 dosas'
+    // worth of every macro.
+    const result = clampPortion('dosa', 350);
+    expect(result.grams).toBe(160);
+    expect(result.clamped).toBe(true);
+    expect(result.originalGrams).toBe(350);
+  });
+
+  it('scales the bound by the number of pieces', () => {
+    // Three dosas really can weigh 300 g, so that must pass through.
+    expect(clampPortion('dosa', 300, 3)).toEqual({ grams: 300, clamped: false });
+  });
+
+  it('leaves a plausible estimate untouched', () => {
+    expect(clampPortion('chicken breast', 170)).toEqual({ grams: 170, clamped: false });
+    expect(clampPortion('miso soup', 350)).toEqual({ grams: 350, clamped: false });
+  });
+
+  it('raises an implausibly small estimate to the floor', () => {
+    const result = clampPortion('biryani', 10);
+    expect(result.grams).toBe(100);
+    expect(result.clamped).toBe(true);
+  });
+
+  it('falls back to the category default when the model gave no weight', () => {
+    expect(clampPortion('dosa', 0).grams).toBe(90);
+    expect(clampPortion('dosa', Number.NaN, 2).grams).toBe(180);
+  });
+
+  it('bounds unknown foods to a wide but finite range', () => {
+    expect(clampPortion('zzzz_unknown_food', 4000).grams).toBe(600);
+  });
+
+  it('treats a zero or negative quantity as one piece', () => {
+    expect(plausibleRange('dosa', 0)).toEqual(plausibleRange('dosa', 1));
   });
 });
 

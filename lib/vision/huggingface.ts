@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { clampPortion, suggestPortion } from './portions';
 import {
   VisionError,
   type FoodAnalysis,
@@ -186,13 +187,31 @@ Return ONLY a valid JSON object in this exact format:
 
       const foods: RecognizedFood[] = parsed.foods
         .filter((f: { name?: string }) => f.name && f.name.toLowerCase().trim() !== 'unknown')
-        .map((f: { name?: string, confidence?: number, portion_g?: number, quantity?: number }) => ({
-          name: f.name || 'Unknown',
-          confidence: typeof f.confidence === 'number' ? f.confidence : 0,
-          quantity: typeof f.quantity === 'number' && f.quantity > 0 ? f.quantity : 1,
-          estimatedGrams: typeof f.portion_g === 'number' ? f.portion_g : undefined,
-          portionSource: 'model' as const,
-        }));
+        .map((f: { name?: string, confidence?: number, portion_g?: number, quantity?: number }) => {
+          const name = f.name || 'Unknown';
+          const quantity = typeof f.quantity === 'number' && f.quantity > 0 ? f.quantity : 1;
+          const hasModelPortion = typeof f.portion_g === 'number' && f.portion_g > 0;
+
+          // The model's weight is a visual guess with no scale reference, and
+          // every macro is derived from it. Bound it to what this food can
+          // plausibly weigh for the number of pieces reported.
+          const portion = hasModelPortion
+            ? clampPortion(name, f.portion_g!, quantity)
+            : { grams: suggestPortion(name).grams * quantity, clamped: false };
+
+          return {
+            name,
+            confidence: typeof f.confidence === 'number' ? f.confidence : 0,
+            quantity,
+            estimatedGrams: portion.grams,
+            estimatedPortion: portion.clamped
+              ? 'adjusted to a realistic serving size'
+              : undefined,
+            portionSource: (hasModelPortion ? 'model' : 'category_default') as
+              | 'model'
+              | 'category_default',
+          };
+        });
 
       const confident = foods.some(f => f.confidence >= 0.4);
 

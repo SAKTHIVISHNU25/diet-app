@@ -58,7 +58,15 @@ Poor lighting, steep angles, partial occlusion, dishes still in packaging, and v
 
 Covered above, but it deserves its own heading because it is the single biggest driver of error in your daily totals.
 
-There is **no automated portion estimation anywhere in this app**. Every gram figure is either a category default or something you typed. Doing this properly requires either a fiducial reference in frame (a known-size object), depth data, or a model trained specifically on volume estimation — none of which are present.
+Every gram figure is a category default, a vision model's visual guess, or something you typed. Doing this properly requires either a fiducial reference in frame (a known-size object), depth data, or a model trained specifically on volume estimation — none of which are present.
+
+### Model portion guesses are bounded, not corrected
+
+The VLM does return a weight, but it has no scale reference and is regularly out by a factor of two or three. Because every macro is `grams x per-100 g density`, one overestimate inflates protein, carbs, fat and calories together — a plain dosa read as 350 g reports roughly three dosas' worth of protein with nothing on screen saying so.
+
+`clampPortion()` in `lib/vision/portions.ts` bounds the model's number to a plausible range for that food, scaled by the number of pieces it reported (one dosa: 50–160 g; three dosas: 150–480 g). When the guess is clamped, the review screen says *"adjusted to a realistic serving size"*.
+
+This catches gross errors only. A clamped portion is still a guess, and the bound cannot tell a large dosa from a small one.
 
 A 30% portion error is far larger than any difference between two reasonable USDA entries for the same food. Weighing food, even occasionally, will improve your data more than any change to the recognition model.
 
