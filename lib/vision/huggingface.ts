@@ -63,14 +63,13 @@ export class HuggingFaceFoodProvider implements FoodVisionProvider {
       const PROMPT = `Identify EVERY distinct food item visible in this image.
 
 For each food give:
-- "name": precise descriptive name. Always differentiate parts (e.g., "boiled egg white", "boiled egg yolk", or "boiled whole egg" - NEVER just "egg").
-- "quantity": count/number of pieces or halves visible (e.g., 14 for 14 egg white halves)
-- "estimated_portion": human readable portion detail (e.g., "14 halves (~7 whole egg whites)")
+- "name": common descriptive name (e.g. "boiled egg", "pomegranate", "boiled sweet potato")
+- "quantity": count/number of pieces (e.g., 2 for two eggs, 1 for a bowl of seeds)
 - "portion_g": total estimated edible weight in grams for all pieces combined
 - "confidence": 0.0 to 1.0
 
 Return ONLY a valid JSON object in this exact format:
-{"foods":[{"name":"...","quantity":1,"estimated_portion":"...","portion_g":0,"confidence":0.0}]}
+{"foods":[{"name":"...","quantity":1,"portion_g":0,"confidence":0.0}]}
 `;
 
       const payload = {
@@ -187,12 +186,11 @@ Return ONLY a valid JSON object in this exact format:
 
       const foods: RecognizedFood[] = parsed.foods
         .filter((f: { name?: string }) => f.name && f.name.toLowerCase().trim() !== 'unknown')
-        .map((f: { name?: string, confidence?: number, portion_g?: number, quantity?: number, estimated_portion?: string }) => ({
+        .map((f: { name?: string, confidence?: number, portion_g?: number, quantity?: number }) => ({
           name: f.name || 'Unknown',
           confidence: typeof f.confidence === 'number' ? f.confidence : 0,
           quantity: typeof f.quantity === 'number' && f.quantity > 0 ? f.quantity : 1,
           estimatedGrams: typeof f.portion_g === 'number' ? f.portion_g : undefined,
-          estimatedPortion: typeof f.estimated_portion === 'string' ? f.estimated_portion : undefined,
           portionSource: 'model' as const,
         }));
 

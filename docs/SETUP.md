@@ -1,6 +1,6 @@
 # Setup
 
-Getting Diet AI running locally, from nothing to a working app.
+Getting MyLyf running locally, from nothing to a working app.
 
 ---
 
@@ -22,7 +22,7 @@ No Docker, no local database, no Python.
 
 ```bash
 git clone <your-repo-url>
-cd diet-ai
+cd mylyf
 npm install
 cp .env.example .env.local
 ```

@@ -1,6 +1,6 @@
-# Diet AI
+# MyLyf
 
-A mobile-first, installable diet and calorie tracking app. Photograph a meal, confirm what it is, and Diet AI handles the calories and macros using nutrition data from USDA FoodData Central.
+A mobile-first, installable diet and calorie tracking app. Photograph a meal, confirm what it is, and MyLyf handles the calories and macros using nutrition data from USDA FoodData Central.
 
 Built as a private app for a small number of users, on free infrastructure, with no dependency on any paid AI API.
 
@@ -49,7 +49,7 @@ Requires **Node.js 20 or later**.
 
 ```bash
 git clone <your-repo-url>
-cd diet-ai
+cd mylyf
 npm install
 cp .env.example .env.local
 ```
@@ -115,7 +115,7 @@ Deploy to Vercel, point it at your Firebase project, and set the environment var
 **Android / desktop Chrome**
 
 1. Open the deployed site over HTTPS and sign in.
-2. Chrome shows an in-app "Install Diet AI" banner — tap **Install**.
+2. Chrome shows an in-app "Install MyLyf" banner — tap **Install**.
 3. If you dismissed it, use the browser menu (⋮) → **Install app** / **Add to Home screen**.
 
 After installing, the app gets its own icon, launches standalone without the address bar, and camera upload continues to work.

@@ -1,6 +1,6 @@
 # Progressive Web App
 
-Diet AI installs from Chrome and runs standalone, like a native app.
+MyLyf installs from Chrome and runs standalone, like a native app.
 
 ---
 
@@ -10,8 +10,8 @@ Diet AI installs from Chrome and runs standalone, like a native app.
 
 ```json
 {
-  "name": "Diet AI",
-  "short_name": "Diet AI",
+  "name": "MyLyf",
+  "short_name": "MyLyf",
   "id": "/dashboard",
   "start_url": "/dashboard",
   "scope": "/",
@@ -84,7 +84,7 @@ The result is an app that opens instantly (shell assets are local), works instal
 
 ### Versioning
 
-The cache name embeds a version (`diet-ai-static-v1`). On `activate`, every `diet-ai-*` cache that is not the current one is deleted. Bump `VERSION` in `sw.js` when you change caching behaviour.
+The cache name embeds a version (`mylyf-static-v1`). On `activate`, every `mylyf-*` cache that is not the current one is deleted. Bump `VERSION` in `sw.js` when you change caching behaviour.
 
 `skipWaiting()` and `clients.claim()` mean a new worker takes over immediately rather than waiting for every tab to close.
 
@@ -146,7 +146,7 @@ Rules the banner follows:
 
 1. **Only when Chrome says it can install.** `canInstall` is true only after the event actually fires, so the banner never advertises an install that would not work.
 2. **Never when already installed.** Detected via `matchMedia('(display-mode: standalone)')` and, on iOS, `navigator.standalone`.
-3. **Never again after dismissal.** A flag in `localStorage` (`diet-ai:install-dismissed`) is checked after mount, so server and client markup match and there is no hydration mismatch. Declining the native dialog also sets it — being asked twice is annoying.
+3. **Never again after dismissal.** A flag in `localStorage` (`mylyf:install-dismissed`) is checked after mount, so server and client markup match and there is no hydration mismatch. Declining the native dialog also sets it — being asked twice is annoying.
 4. **Cleared on install.** The `appinstalled` event clears the deferred prompt and re-checks display mode.
 
 `localStorage` access is wrapped in `try/catch` — private browsing can block it, and that should not break the page.

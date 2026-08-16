@@ -2,7 +2,7 @@
 
 ## Overview
 
-Diet AI is a single Next.js application. There is no separate backend service: the App Router serves both the UI and the API, and Firebase provides the database, authentication and file storage.
+MyLyf is a single Next.js application. There is no separate backend service: the App Router serves both the UI and the API, and Firebase provides the database, authentication and file storage.
 
 ```
 ┌─────────────────────────────────────────────────────────┐

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { Camera, LineChart, Salad, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MedicalDisclaimer } from '@/components/shared/medical-disclaimer';
+import { MyLyfLogo } from '@/components/shared/logo';
 import { getSessionUser } from '@/lib/firebase/server';
 
 const FEATURES = [
@@ -41,18 +42,13 @@ export default async function LandingPage() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-5 py-10">
       <header className="flex-1">
-        <div className="mb-10 flex items-center gap-2">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Salad className="size-5" />
-          </div>
-          <span className="text-lg font-semibold tracking-tight">Diet AI</span>
-        </div>
+        <MyLyfLogo className="mb-10" />
 
         <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
           Know what you eat, without the guesswork.
         </h1>
         <p className="mt-4 text-pretty text-lg text-muted-foreground">
-          Snap a photo of your meal, confirm what it is, and let Diet AI handle the
+          Snap a photo of your meal, confirm what it is, and let MyLyf handle the
           calories and macros — with nutrition data from USDA FoodData Central.
         </p>
 

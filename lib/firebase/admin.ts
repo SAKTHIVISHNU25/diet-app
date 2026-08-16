@@ -18,7 +18,7 @@ import { getStorage } from 'firebase-admin/storage';
  * the raw JSON contains newlines).
  */
 
-const ADMIN_APP_NAME = 'diet-ai-admin';
+const ADMIN_APP_NAME = 'mylyf-admin';
 
 class FirebaseAdminError extends Error {}
 

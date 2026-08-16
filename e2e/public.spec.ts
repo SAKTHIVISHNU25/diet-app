@@ -100,8 +100,8 @@ test.describe('PWA', () => {
     expect(response.ok()).toBe(true);
 
     const manifest = await response.json();
-    expect(manifest.name).toBe('Diet AI');
-    expect(manifest.short_name).toBe('Diet AI');
+    expect(manifest.name).toBe('MyLyf');
+    expect(manifest.short_name).toBe('MyLyf');
     expect(manifest.display).toBe('standalone');
     expect(manifest.start_url).toBeTruthy();
 

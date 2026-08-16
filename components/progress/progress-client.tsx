@@ -19,6 +19,11 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { WeightChart } from '@/components/progress/weight-chart';
+import {
+  changeTone,
+  DeltaPill,
+  WeightJourney,
+} from '@/components/progress/weight-journey';
 import { cn, formatDateShort, formatNumber, toISODate } from '@/lib/utils';
 import { readApiError } from '@/lib/utils/fetch';
 
@@ -54,46 +59,70 @@ export function ProgressClient({
     }
   }
 
-  const change = summary.change ?? 0;
-  const hasChange = Math.abs(change) >= 0.1;
+  const tone = changeTone(
+    summary.change,
+    summary.startingWeight,
+    summary.goalWeight,
+  );
+  const hasToGoal = summary.toGoal !== null && Math.abs(summary.toGoal) >= 0.1;
+
+  // Newest first, with the step against the previous weigh-in for each row.
+  const rows = [...entries].reverse().map((entry, index, list) => {
+    const previous = list[index + 1];
+    return {
+      entry,
+      step: previous ? entry.weight_kg - previous.weight_kg : null,
+    };
+  });
 
   return (
     <div className="mt-6 space-y-4">
       <Card>
-        <CardContent className="grid grid-cols-3 gap-3 p-4 text-center">
-          <Stat label="Starting" value={summary.startingWeight} />
-          <Stat label="Current" value={summary.currentWeight} highlight />
-          <Stat label="Goal" value={summary.goalWeight} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4">
+        <CardContent className="p-5">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Change since you started
+            Current weight
           </p>
-          <p
-            className={cn(
-              'tabular mt-1 text-2xl font-semibold',
-              !hasChange ? 'text-muted-foreground' : change < 0 ? 'text-primary' : '',
-            )}
-          >
-            {hasChange
-              ? `${change < 0 ? '−' : '+'}${formatNumber(Math.abs(change), 1)} kg`
-              : 'No change yet'}
-          </p>
-          {summary.toGoal !== null && Math.abs(summary.toGoal) >= 0.1 ? (
-            <p className="mt-1 text-sm text-muted-foreground">
-              <span className="tabular">
-                {formatNumber(Math.abs(summary.toGoal), 1)} kg
-              </span>{' '}
-              to your goal.
+          <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-2">
+            <p className="tabular text-4xl font-semibold leading-none">
+              {summary.currentWeight === null
+                ? '—'
+                : formatNumber(summary.currentWeight, 1)}
+              <span className="ml-1 text-base font-medium text-muted-foreground">
+                kg
+              </span>
             </p>
-          ) : null}
+            <DeltaPill change={summary.change} tone={tone} />
+          </div>
+
+          <WeightJourney
+            className="mt-5"
+            startingWeight={summary.startingWeight}
+            currentWeight={summary.currentWeight}
+            goalWeight={summary.goalWeight}
+          />
+
+          <p className="mt-4 text-sm text-muted-foreground">
+            {hasToGoal ? (
+              <>
+                <span className="tabular font-medium text-foreground">
+                  {formatNumber(Math.abs(summary.toGoal!), 1)} kg
+                </span>{' '}
+                to your goal.
+              </>
+            ) : summary.goalWeight !== null ? (
+              <>You&rsquo;re at your goal weight. Nice work.</>
+            ) : (
+              <>Set a target weight in your profile to track a goal.</>
+            )}
+          </p>
+
+          <div className="mt-5 grid grid-cols-3 gap-3 border-t pt-4 text-center">
+            <Stat label="Starting" value={summary.startingWeight} />
+            <Stat label="Current" value={summary.currentWeight} highlight />
+            <Stat label="Goal" value={summary.goalWeight} />
+          </div>
         </CardContent>
       </Card>
-
-      <WeightChart entries={entries} goalWeight={summary.goalWeight} />
 
       <Button
         size="lg"
@@ -107,23 +136,51 @@ export function ProgressClient({
         Add weight
       </Button>
 
+      <WeightChart entries={entries} goalWeight={summary.goalWeight} />
+
       <Card>
         <CardContent className="p-4">
-          <h2 className="font-medium">Entries</h2>
+          <div className="flex items-baseline justify-between">
+            <h2 className="font-medium">Entries</h2>
+            {entries.length > 0 ? (
+              <p className="tabular text-xs text-muted-foreground">
+                {entries.length} {entries.length === 1 ? 'weigh-in' : 'weigh-ins'}
+              </p>
+            ) : null}
+          </div>
 
           {entries.length === 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">
-              No weigh-ins yet. Add one to start your trend.
-            </p>
+            <div className="mt-4 rounded-lg border border-dashed px-4 py-8 text-center">
+              <p className="text-sm font-medium">No weigh-ins yet</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Add your first one to start the trend.
+              </p>
+            </div>
           ) : (
-            <ul className="mt-2 divide-y">
-              {[...entries].reverse().map((entry) => (
-                <li key={entry.id} className="flex items-center gap-2 py-2">
+            <ul className="mt-1 divide-y">
+              {rows.map(({ entry, step }) => (
+                <li key={entry.id} className="flex items-center gap-3 py-2.5">
                   <div className="min-w-0 flex-1">
-                    <p className="tabular text-sm font-medium">
-                      {formatNumber(entry.weight_kg, 1)} kg
-                    </p>
-                    <p className="text-xs text-muted-foreground">
+                    <div className="flex items-baseline gap-2">
+                      <p className="tabular text-base font-semibold">
+                        {formatNumber(entry.weight_kg, 1)}
+                        <span className="ml-0.5 text-xs font-normal text-muted-foreground">
+                          kg
+                        </span>
+                      </p>
+                      {step !== null && Math.abs(step) >= 0.1 ? (
+                        <span
+                          className={cn(
+                            'tabular text-xs font-medium',
+                            step < 0 ? 'text-primary' : 'text-muted-foreground',
+                          )}
+                        >
+                          {step < 0 ? '−' : '+'}
+                          {formatNumber(Math.abs(step), 1)}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">
                       {formatDateShort(entry.entry_date)}
                       {entry.note ? ` · ${entry.note}` : ''}
                     </p>
@@ -192,9 +249,9 @@ function Stat({
           highlight ? 'text-primary' : '',
         )}
       >
-        {value === null ? '—' : `${formatNumber(value, 1)}`}
+        {value === null ? '—' : formatNumber(value, 1)}
+        <span className="ml-0.5 text-xs font-normal text-muted-foreground">kg</span>
       </p>
-      <p className="text-xs text-muted-foreground">kg</p>
     </div>
   );
 }

@@ -1,15 +1,19 @@
 import Link from 'next/link';
-import { ArrowRight, Minus, TrendingDown, TrendingUp } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  changeTone,
+  DeltaPill,
+  WeightJourney,
+} from '@/components/progress/weight-journey';
 import type { ProgressSummary } from '@/types/progress';
-import { cn, formatNumber } from '@/lib/utils';
+import { formatNumber } from '@/lib/utils';
 
 export function WeightCard({ summary }: { summary: ProgressSummary }) {
-  const { currentWeight, change, goalWeight } = summary;
-  const hasChange = change !== null && Math.abs(change) >= 0.1;
-
-  const Icon = !hasChange ? Minus : change! < 0 ? TrendingDown : TrendingUp;
+  const { startingWeight, currentWeight, change, goalWeight, toGoal } = summary;
+  const tone = changeTone(change, startingWeight, goalWeight);
+  const hasToGoal = toGoal !== null && Math.abs(toGoal) >= 0.1;
 
   return (
     <Card>
@@ -22,54 +26,50 @@ export function WeightCard({ summary }: { summary: ProgressSummary }) {
           </Link>
         </Button>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-end gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Current
-            </p>
-            <p className="tabular text-2xl font-semibold">
-              {currentWeight === null ? '—' : `${formatNumber(currentWeight, 1)} kg`}
-            </p>
-          </div>
 
-          <div className="flex-1">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Since start
-            </p>
-            <p
-              className={cn(
-                'tabular flex items-center gap-1 text-lg font-medium',
-                !hasChange
-                  ? 'text-muted-foreground'
-                  : change! < 0
-                    ? 'text-primary'
-                    : 'text-foreground',
-              )}
-            >
-              <Icon className="size-4" aria-hidden />
-              {hasChange ? `${formatNumber(Math.abs(change!), 1)} kg` : 'No change'}
-            </p>
-          </div>
+      <CardContent>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+          <p className="tabular text-4xl font-semibold leading-none">
+            {currentWeight === null ? '—' : formatNumber(currentWeight, 1)}
+            <span className="ml-1 text-base font-medium text-muted-foreground">
+              kg
+            </span>
+          </p>
+          <DeltaPill change={change} tone={tone} />
         </div>
 
-        {goalWeight !== null ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            Goal: <span className="tabular">{formatNumber(goalWeight, 1)} kg</span>
-            {summary.toGoal !== null && Math.abs(summary.toGoal) >= 0.1 ? (
-              <>
-                {' '}
-                · <span className="tabular">
-                  {formatNumber(Math.abs(summary.toGoal), 1)} kg
-                </span>{' '}
-                to go
-              </>
-            ) : null}
-          </p>
-        ) : null}
+        <WeightJourney
+          className="mt-5"
+          startingWeight={startingWeight}
+          currentWeight={currentWeight}
+          goalWeight={goalWeight}
+        />
+
+        <p className="mt-4 text-sm text-muted-foreground">
+          {hasToGoal ? (
+            <>
+              <span className="tabular font-medium text-foreground">
+                {formatNumber(Math.abs(toGoal), 1)} kg
+              </span>{' '}
+              to your goal
+              {goalWeight !== null ? (
+                <>
+                  {' '}
+                  of{' '}
+                  <span className="tabular">{formatNumber(goalWeight, 1)} kg</span>
+                </>
+              ) : null}
+              .
+            </>
+          ) : goalWeight !== null ? (
+            <>You&rsquo;re at your goal weight. Nice work.</>
+          ) : (
+            <>Set a target weight in your profile to track a goal.</>
+          )}
+        </p>
 
         {summary.entryCount === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-1.5 text-xs text-muted-foreground">
             No weigh-ins yet — showing the weight from your profile.
           </p>
         ) : null}

@@ -1,6 +1,6 @@
 # Diet plan and targets
 
-How Diet AI turns a profile into daily targets, and those targets into a 7-day meal plan.
+How MyLyf turns a profile into daily targets, and those targets into a 7-day meal plan.
 
 ---
 

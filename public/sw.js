@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 /**
- * Diet AI service worker.
+ * MyLyf service worker.
  *
  * Scope is deliberately narrow. This app is almost entirely personal, private,
  * per-user data, so caching HTML responses would risk showing one account's
@@ -16,7 +16,7 @@
  */
 
 const VERSION = 'v1';
-const STATIC_CACHE = `diet-ai-static-${VERSION}`;
+const STATIC_CACHE = `mylyf-static-${VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_URLS = [
@@ -44,7 +44,7 @@ self.addEventListener('activate', (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key.startsWith('diet-ai-') && key !== STATIC_CACHE)
+            .filter((key) => key.startsWith('mylyf-') && key !== STATIC_CACHE)
             .map((key) => caches.delete(key)),
         ),
       )

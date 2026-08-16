@@ -252,7 +252,7 @@ The 20 authenticated Playwright specs in `e2e/authenticated.spec.ts` cover that 
 
 ## Summary
 
-Diet AI is useful as a **consistent relative signal** — a way to notice that today was heavier than yesterday, or that protein is habitually low. It is not a measurement instrument.
+MyLyf is useful as a **consistent relative signal** — a way to notice that today was heavier than yesterday, or that protein is habitually low. It is not a measurement instrument.
 
 The largest error source is portion size, which no part of this app can estimate for you. Weighing your food, even occasionally, will improve your data more than anything else.
 

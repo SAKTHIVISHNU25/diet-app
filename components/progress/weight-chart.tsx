@@ -35,9 +35,12 @@ export function WeightChart({
           <CardTitle className="text-base">Trend</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Add at least two weigh-ins to see your trend.
-          </p>
+          <div className="rounded-lg border border-dashed px-4 py-8 text-center">
+            <p className="text-sm font-medium">Not enough data yet</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Add at least two weigh-ins to see your trend.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );

@@ -1,6 +1,6 @@
 # Deployment
 
-Deploying Diet AI to Vercel with a Firebase backend. Both free tiers cover a handful of users.
+Deploying MyLyf to Vercel with a Firebase backend. Both free tiers cover a handful of users.
 
 ---
 

@@ -20,8 +20,9 @@ import { addDays, toISODate } from '@/lib/utils';
  *
  * Logs live under `food_logs/{uid}`, so a query is already scoped to the user
  * by its path. `orderByChild('log_date')` needs `.indexOn: ["log_date"]` in
- * database.rules.json — without it results are still correct, just sorted
- * client-side with a performance warning.
+ * database.rules.json AND that ruleset deployed. The Admin SDK does not fall
+ * back to client-side sorting the way the Web SDK does — it rejects the query
+ * outright, so a missing index surfaces here as an empty result list.
  */
 
 /** All of the signed-in user's logs for one date, oldest first. */

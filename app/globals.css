@@ -4,76 +4,78 @@
 
 @layer base {
   :root {
-    /* Health/wellness palette — a calm green primary on near-white. */
-    --background: 150 20% 99%;
-    --foreground: 160 15% 12%;
+    /* MyLyf — a lily palette: deep petal magenta on a barely-tinted white. */
+    --background: 320 30% 99%;
+    --foreground: 315 20% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 160 15% 12%;
+    --card-foreground: 315 20% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 160 15% 12%;
+    --popover-foreground: 315 20% 12%;
 
-    --primary: 158 64% 32%;
-    --primary-foreground: 150 40% 98%;
+    --primary: 322 48% 42%;
+    --primary-foreground: 320 40% 98%;
 
-    --secondary: 150 20% 94%;
-    --secondary-foreground: 160 20% 20%;
+    --secondary: 320 24% 95%;
+    --secondary-foreground: 315 25% 22%;
 
-    --muted: 150 16% 95%;
-    --muted-foreground: 155 8% 44%;
+    --muted: 320 20% 96%;
+    --muted-foreground: 318 10% 44%;
 
-    --accent: 158 40% 93%;
-    --accent-foreground: 160 30% 18%;
+    --accent: 322 45% 94%;
+    --accent-foreground: 318 35% 20%;
 
-    --destructive: 0 72% 45%;
+    /* Pushed towards red-orange so it never reads as the magenta primary. */
+    --destructive: 8 75% 44%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 12% 89%;
-    --input: 150 12% 86%;
-    --ring: 158 64% 32%;
+    --border: 320 18% 90%;
+    --input: 320 18% 86%;
+    --ring: 322 48% 42%;
 
-    /* Macro accents. Chosen to stay distinguishable for the most common forms
-       of colour vision deficiency, and always paired with a text label. */
+    /* Macro accents. Chosen to stay distinguishable from each other and from
+       the primary for the most common forms of colour vision deficiency, and
+       always paired with a text label. */
     --protein: 199 89% 40%;
     --carbs: 38 92% 42%;
-    --fat: 271 60% 52%;
+    --fat: 265 62% 55%;
 
     --radius: 0.75rem;
   }
 
   .dark {
-    --background: 160 18% 7%;
-    --foreground: 150 15% 95%;
+    --background: 315 22% 7%;
+    --foreground: 320 15% 95%;
 
-    --card: 160 16% 10%;
-    --card-foreground: 150 15% 95%;
+    --card: 315 20% 10%;
+    --card-foreground: 320 15% 95%;
 
-    --popover: 160 16% 10%;
-    --popover-foreground: 150 15% 95%;
+    --popover: 315 20% 10%;
+    --popover-foreground: 320 15% 95%;
 
-    --primary: 158 55% 45%;
-    --primary-foreground: 160 30% 8%;
+    --primary: 322 60% 62%;
+    --primary-foreground: 318 40% 10%;
 
-    --secondary: 160 12% 17%;
-    --secondary-foreground: 150 15% 95%;
+    --secondary: 315 14% 17%;
+    --secondary-foreground: 320 15% 95%;
 
-    --muted: 160 12% 16%;
-    --muted-foreground: 150 8% 64%;
+    --muted: 315 14% 16%;
+    --muted-foreground: 318 10% 65%;
 
-    --accent: 160 14% 20%;
-    --accent-foreground: 150 15% 95%;
+    --accent: 315 16% 20%;
+    --accent-foreground: 320 15% 95%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 6 70% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 160 10% 20%;
-    --input: 160 10% 24%;
-    --ring: 158 55% 45%;
+    --border: 315 12% 20%;
+    --input: 315 12% 24%;
+    --ring: 322 60% 62%;
 
-    --protein: 199 85% 55%;
-    --carbs: 38 90% 55%;
-    --fat: 271 65% 68%;
+    --protein: 199 85% 60%;
+    --carbs: 38 90% 58%;
+    --fat: 265 70% 72%;
   }
 }
 

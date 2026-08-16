@@ -1,6 +1,6 @@
 {
-  "name": "Diet AI",
-  "short_name": "Diet AI",
+  "name": "MyLyf",
+  "short_name": "MyLyf",
   "description": "Track calories and macros, scan meals, and follow a personalised 7-day diet plan.",
   "id": "/dashboard",
   "start_url": "/dashboard",
@@ -9,7 +9,7 @@
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#1b7a55",
+  "theme_color": "#9e3879",
   "lang": "en",
   "dir": "ltr",
   "categories": ["health", "fitness", "lifestyle"],

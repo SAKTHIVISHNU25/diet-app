@@ -5,7 +5,7 @@ import { Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useInstallPrompt } from '@/hooks/use-install-prompt';
 
-const DISMISSED_KEY = 'diet-ai:install-dismissed';
+const DISMISSED_KEY = 'mylyf:install-dismissed';
 
 /**
  * Chrome install banner.
@@ -52,7 +52,7 @@ export function InstallPrompt() {
         </div>
         <div className="min-w-0 flex-1">
           <p id="install-title" className="text-sm font-medium">
-            Install Diet AI
+            Install MyLyf
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Add it to your home screen for a full-screen, app-like experience.

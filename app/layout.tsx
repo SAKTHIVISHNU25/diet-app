@@ -12,16 +12,16 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Diet AI — Calorie & Nutrition Tracker',
-    template: '%s | Diet AI',
+    default: 'MyLyf — Calorie & Nutrition Tracker',
+    template: '%s | MyLyf',
   },
   description:
     'Track calories and macros, scan meals with open-source food recognition, and follow a personalised 7-day diet plan.',
-  applicationName: 'Diet AI',
+  applicationName: 'MyLyf',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
-    title: 'Diet AI',
+    title: 'MyLyf',
     statusBarStyle: 'default',
   },
   // Icon <link> tags come from the app/icon.png and app/apple-icon.png file
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#101a16' },
+    { media: '(prefers-color-scheme: dark)', color: '#160e14' },
   ],
   width: 'device-width',
   initialScale: 1,
