@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Offline — Diet AI</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#1b7a55" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #fbfdfc;
+        --fg: #17211d;
+        --muted: #667069;
+        --primary: #1b7a55;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f1613;
+          --fg: #eaf0ed;
+          --muted: #9aa5a0;
+          --primary: #34b183;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 1.5rem;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        text-align: center;
+      }
+      .card { max-width: 24rem; }
+      .badge {
+        width: 3.5rem;
+        height: 3.5rem;
+        margin: 0 auto 1.25rem;
+        display: grid;
+        place-items: center;
+        border-radius: 1rem;
+        background: color-mix(in srgb, var(--primary) 14%, transparent);
+        color: var(--primary);
+        font-size: 1.75rem;
+      }
+      h1 { margin: 0 0 0.5rem; font-size: 1.375rem; letter-spacing: -0.01em; }
+      p { margin: 0 0 1.5rem; color: var(--muted); line-height: 1.6; font-size: 0.9375rem; }
+      button {
+        min-height: 2.75rem;
+        padding: 0 1.5rem;
+        border: 0;
+        border-radius: 0.625rem;
+        background: var(--primary);
+        color: #fff;
+        font: inherit;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      button:hover { filter: brightness(1.08); }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="badge" aria-hidden="true">📶</div>
+      <h1>You're offline</h1>
+      <p>
+        Diet AI needs a connection to load your food log, look up nutrition and
+        analyse photos. Your saved data is safe — it will be here when you
+        reconnect.
+      </p>
+      <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+  </body>
+</html>

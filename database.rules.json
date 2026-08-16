@@ -1,0 +1,89 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "profiles": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['full_name', 'age', 'gender', 'height_cm', 'weight_kg'])",
+        "age": { ".validate": "newData.isNumber() && newData.val() >= 13 && newData.val() <= 120" },
+        "height_cm": { ".validate": "newData.isNumber() && newData.val() >= 80 && newData.val() <= 260" },
+        "weight_kg": { ".validate": "newData.isNumber() && newData.val() >= 25 && newData.val() <= 400" },
+        "target_weight_kg": { ".validate": "newData.val() === null || (newData.isNumber() && newData.val() >= 25 && newData.val() <= 400)" },
+        "meals_per_day": { ".validate": "newData.isNumber() && newData.val() >= 2 && newData.val() <= 6" },
+        "gender": { ".validate": "newData.isString() && newData.val().matches(/^(male|female|other)$/)" },
+        "activity_level": { ".validate": "newData.isString() && newData.val().matches(/^(sedentary|lightly_active|moderately_active|very_active)$/)" },
+        "goal": { ".validate": "newData.isString() && newData.val().matches(/^(lose_weight|maintain_weight|gain_weight)$/)" },
+        "dietary_preference": { ".validate": "newData.isString() && newData.val().matches(/^(vegetarian|non_vegetarian|vegan|eggetarian)$/)" }
+      }
+    },
+
+    "food_logs": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".indexOn": ["log_date"],
+        "$logId": {
+          ".validate": "newData.hasChildren(['log_date', 'meal_type', 'food_name', 'grams'])",
+          "log_date": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+          "meal_type": { ".validate": "newData.isString() && newData.val().matches(/^(breakfast|lunch|snack|dinner|other)$/)" },
+          "food_name": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120" },
+          "grams": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 5000" },
+          "calories": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "protein_g": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "carbs_g": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "fat_g": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "confidence": { ".validate": "newData.val() === null || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 1)" }
+        }
+      }
+    },
+
+    "diet_plans": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".indexOn": ["is_active"],
+        "$planId": {
+          "calorie_target": { ".validate": "newData.isNumber() && newData.val() > 0" },
+          "is_active": { ".validate": "newData.isBoolean()" }
+        }
+      }
+    },
+
+    "diet_plan_meals": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".indexOn": ["plan_id"],
+        "$mealId": {
+          "day_index": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 6" },
+          "meal_type": { ".validate": "newData.isString() && newData.val().matches(/^(breakfast|lunch|snack|dinner|other)$/)" }
+        }
+      }
+    },
+
+    "weight_entries": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "$date": {
+          ".validate": "$date.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.hasChild('weight_kg')",
+          "weight_kg": { ".validate": "newData.isNumber() && newData.val() >= 25 && newData.val() <= 400" },
+          "note": { ".validate": "newData.val() === null || (newData.isString() && newData.val().length <= 200)" }
+        }
+      }
+    },
+
+    "food_cache": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$key": {
+        ".validate": "newData.hasChildren(['name'])",
+        "name": { ".validate": "newData.isString() && newData.val().length > 0" },
+        "calories_per_100g": { ".validate": "newData.isNumber() && newData.val() >= 0" }
+      }
+    }
+  }
+}

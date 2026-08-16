@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Health/wellness palette — a calm green primary on near-white. */
+    --background: 150 20% 99%;
+    --foreground: 160 15% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 160 15% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 160 15% 12%;
+
+    --primary: 158 64% 32%;
+    --primary-foreground: 150 40% 98%;
+
+    --secondary: 150 20% 94%;
+    --secondary-foreground: 160 20% 20%;
+
+    --muted: 150 16% 95%;
+    --muted-foreground: 155 8% 44%;
+
+    --accent: 158 40% 93%;
+    --accent-foreground: 160 30% 18%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 12% 89%;
+    --input: 150 12% 86%;
+    --ring: 158 64% 32%;
+
+    /* Macro accents. Chosen to stay distinguishable for the most common forms
+       of colour vision deficiency, and always paired with a text label. */
+    --protein: 199 89% 40%;
+    --carbs: 38 92% 42%;
+    --fat: 271 60% 52%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 160 18% 7%;
+    --foreground: 150 15% 95%;
+
+    --card: 160 16% 10%;
+    --card-foreground: 150 15% 95%;
+
+    --popover: 160 16% 10%;
+    --popover-foreground: 150 15% 95%;
+
+    --primary: 158 55% 45%;
+    --primary-foreground: 160 30% 8%;
+
+    --secondary: 160 12% 17%;
+    --secondary-foreground: 150 15% 95%;
+
+    --muted: 160 12% 16%;
+    --muted-foreground: 150 8% 64%;
+
+    --accent: 160 14% 20%;
+    --accent-foreground: 150 15% 95%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 160 10% 20%;
+    --input: 160 10% 24%;
+    --ring: 158 55% 45%;
+
+    --protein: 199 85% 55%;
+    --carbs: 38 90% 55%;
+    --fat: 271 65% 68%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    /* Respect the notch/home indicator when installed as a PWA. */
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Visible focus for keyboard users on every interactive element. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer utilities {
+  /* Bottom padding that clears the fixed mobile nav plus the home indicator. */
+  .pb-safe-nav {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Numbers line up in columns when tabular. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
