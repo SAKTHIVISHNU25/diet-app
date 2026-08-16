@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import type { FoodLog } from '@/types/meal';
 import { Button } from '@/components/ui/button';
 import { EditFoodLogSheet } from '@/components/food/edit-food-log-sheet';
+import { MacroDots } from '@/components/food/macro-dots';
 import { formatNumber } from '@/lib/utils';
 import { readApiError } from '@/lib/utils/fetch';
 
@@ -38,25 +39,44 @@ export function FoodLogList({ logs }: { logs: FoodLog[] }) {
 
   return (
     <>
-      <ul className="mt-2 space-y-1">
+      <ul className="mt-1.5 space-y-0.5">
         {logs.map((log) => (
           <li
             key={log.id}
-            className="flex items-center gap-2 rounded-lg py-1.5 pl-2 pr-1 hover:bg-muted/60"
+            className="flex items-center gap-1 rounded-xl px-2 py-2 transition-colors hover:bg-muted/60"
           >
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{log.food_name}</p>
-              <p className="tabular text-xs text-muted-foreground">
-                {formatNumber(log.grams)} g · {formatNumber(log.calories)} kcal ·{' '}
-                P {formatNumber(log.protein_g, 1)} · C {formatNumber(log.carbs_g, 1)} ·{' '}
-                F {formatNumber(log.fat_g, 1)}
-              </p>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="truncate text-sm font-medium first-letter:uppercase">
+                  {log.food_name}
+                </p>
+                <p className="tabular shrink-0 text-sm font-medium">
+                  {formatNumber(log.calories)}
+                  <span className="ml-0.5 text-xs font-normal text-muted-foreground">
+                    kcal
+                  </span>
+                </p>
+              </div>
+
+              <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                <span className="tabular text-xs text-muted-foreground">
+                  {formatNumber(log.grams)} g
+                </span>
+                <span className="text-xs text-muted-foreground/40" aria-hidden>
+                  |
+                </span>
+                <MacroDots
+                  protein={log.protein_g}
+                  carbs={log.carbs_g}
+                  fat={log.fat_g}
+                />
+              </div>
             </div>
 
             <Button
               variant="ghost"
               size="icon"
-              className="size-9 shrink-0"
+              className="size-8 shrink-0 text-muted-foreground hover:text-foreground"
               onClick={() => setEditing(log)}
               aria-label={`Edit ${log.food_name}`}
             >
@@ -66,7 +86,7 @@ export function FoodLogList({ logs }: { logs: FoodLog[] }) {
             <Button
               variant="ghost"
               size="icon"
-              className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
+              className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
               onClick={() => handleDelete(log)}
               disabled={deletingId === log.id}
               aria-label={`Delete ${log.food_name}`}

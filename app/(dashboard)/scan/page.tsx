@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { ScanClient } from '@/components/food/scan-client';
 import { MedicalDisclaimer } from '@/components/shared/medical-disclaimer';
+import { PageHeader } from '@/components/shared/page-header';
 import { getProfile } from '@/lib/data/profile';
 import { toISODate } from '@/lib/utils';
 
@@ -16,11 +17,10 @@ export default async function ScanPage() {
 
   return (
     <main className="px-5 py-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Scan food</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Take a photo or choose one from your gallery. You confirm the result before
-        anything is added to your log.
-      </p>
+      <PageHeader
+        title="Scan food"
+        description="Take a photo or choose one from your gallery. You confirm the result before anything is added to your log."
+      />
 
       <ScanClient today={toISODate()} />
 

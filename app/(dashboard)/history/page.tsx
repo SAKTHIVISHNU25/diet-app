@@ -2,11 +2,13 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { FoodLogList } from '@/components/food/food-log-list';
+import { MacroDots } from '@/components/food/macro-dots';
+import { PageHeader } from '@/components/shared/page-header';
 import { MEAL_TYPE_LABELS, type MealType } from '@/types/meal';
 import { getProfile } from '@/lib/data/profile';
 import { getRecentLogsByDate } from '@/lib/data/food-logs';
 import { calculateTargets } from '@/lib/calculations/targets';
-import { formatNumber, formatRelativeDate } from '@/lib/utils';
+import { cn, formatNumber, formatRelativeDate } from '@/lib/utils';
 
 export const metadata: Metadata = { title: 'History' };
 export const dynamic = 'force-dynamic';
@@ -24,15 +26,20 @@ export default async function HistoryPage() {
 
   return (
     <main className="px-5 py-6">
-      <h1 className="text-2xl font-semibold tracking-tight">History</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Everything you logged in the last 30 days.
-      </p>
+      <PageHeader
+        title="History"
+        description="Everything you logged in the last 30 days."
+      />
 
       {days.length === 0 ? (
         <Card className="mt-6">
-          <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            Nothing logged yet. Scan a meal to start building your history.
+          <CardContent className="p-6">
+            <div className="rounded-lg border border-dashed px-4 py-8 text-center">
+              <p className="text-sm font-medium">Nothing logged yet</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Scan a meal to start building your history.
+              </p>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -50,25 +57,35 @@ export default async function HistoryPage() {
             return (
               <Card key={day.date}>
                 <CardContent className="p-4">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <h2 className="font-medium">{formatRelativeDate(day.date)}</h2>
-                    <span className="tabular text-sm text-muted-foreground">
-                      {formatNumber(day.totals.calories)} / {formatNumber(targets.calories)}{' '}
-                      kcal
-                      {overTarget ? ' ⚠' : ''}
+                  <div className="flex items-baseline justify-between gap-3 px-1">
+                    <h2 className="font-semibold tracking-tight">
+                      {formatRelativeDate(day.date)}
+                    </h2>
+                    <span
+                      className={cn(
+                        'tabular text-sm font-medium',
+                        overTarget ? 'text-destructive' : 'text-muted-foreground',
+                      )}
+                    >
+                      {formatNumber(day.totals.calories)}
+                      <span className="font-normal text-muted-foreground">
+                        {' '}
+                        / {formatNumber(targets.calories)} kcal
+                      </span>
                     </span>
                   </div>
 
-                  <p className="tabular mt-0.5 text-xs text-muted-foreground">
-                    P {formatNumber(day.totals.protein_g, 1)} g · C{' '}
-                    {formatNumber(day.totals.carbs_g, 1)} g · F{' '}
-                    {formatNumber(day.totals.fat_g, 1)} g
-                  </p>
+                  <MacroDots
+                    className="mt-1.5 px-1"
+                    protein={day.totals.protein_g}
+                    carbs={day.totals.carbs_g}
+                    fat={day.totals.fat_g}
+                  />
 
-                  <div className="mt-3 space-y-3">
+                  <div className="mt-3 divide-y">
                     {MEAL_ORDER.filter((meal) => byMeal.has(meal)).map((meal) => (
-                      <section key={meal}>
-                        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      <section key={meal} className="py-2 first:pt-0 last:pb-0">
+                        <h3 className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           {MEAL_TYPE_LABELS[meal]}
                         </h3>
                         <FoodLogList logs={byMeal.get(meal)!} />

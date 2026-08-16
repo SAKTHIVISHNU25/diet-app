@@ -7,6 +7,7 @@ import type { DietPlanMeal } from '@/types/diet-plan';
 import { MEAL_TYPE_LABELS } from '@/types/meal';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { MacroDots } from '@/components/food/macro-dots';
 import { formatNumber } from '@/lib/utils';
 import { readApiError } from '@/lib/utils/fetch';
 
@@ -59,26 +60,28 @@ export function MealCard({
           </span>
         </div>
 
-        <ul className="mt-3 space-y-1">
+        <ul className="mt-3 space-y-1.5 rounded-xl bg-muted/50 p-3">
           {meal.foods.map((food, index) => (
             <li
               key={`${food.name}-${index}`}
-              className="tabular flex justify-between gap-3 text-sm text-muted-foreground"
+              className="tabular flex justify-between gap-3 text-sm"
             >
-              <span className="truncate">{food.name}</span>
-              <span className="shrink-0">
+              <span className="truncate first-letter:uppercase">{food.name}</span>
+              <span className="shrink-0 text-muted-foreground">
                 {formatNumber(food.grams)} g · {formatNumber(food.calories)} kcal
               </span>
             </li>
           ))}
         </ul>
 
-        <p className="tabular mt-3 text-xs text-muted-foreground">
-          P {formatNumber(meal.protein_g, 1)} g · C {formatNumber(meal.carbs_g, 1)} g · F{' '}
-          {formatNumber(meal.fat_g, 1)} g
-        </p>
+        <MacroDots
+          className="mt-3"
+          protein={meal.protein_g}
+          carbs={meal.carbs_g}
+          fat={meal.fat_g}
+        />
 
-        <div className="mt-3 flex gap-2">
+        <div className="mt-4 flex gap-2">
           <Button variant="outline" size="sm" onClick={onEdit} className="flex-1">
             <Pencil aria-hidden />
             Edit

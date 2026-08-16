@@ -21,12 +21,10 @@ import {
 import { calculateNutritionForGrams } from '@/lib/calculations/nutrition';
 import { formatNumber } from '@/lib/utils';
 import { readApiError } from '@/lib/utils/fetch';
-import { uploadFoodImage } from '@/lib/storage/food-images';
 
 interface FoodReviewProps {
   initialCandidates: FoodCandidate[];
   date: string;
-  imageFile: File | null;
   notes?: string;
   alternatives: { name: string; confidence: number }[];
   onStartOver: () => void;
@@ -42,7 +40,6 @@ interface FoodReviewProps {
 export function FoodReview({
   initialCandidates,
   date,
-  imageFile,
   notes,
   alternatives,
   onStartOver,
@@ -91,9 +88,6 @@ export function FoodReview({
 
     setSaving(true);
     try {
-      // Best effort — a failed upload must not block logging the food itself.
-      const imageUrl = imageFile ? await uploadFoodImage(imageFile) : null;
-
       const payload = {
         items: ready.map((item) => {
           const nutrition = calculateNutritionForGrams(item.nutrition!, item.grams);
@@ -104,7 +98,9 @@ export function FoodReview({
             quantity: item.quantity ?? 1,
             grams: item.grams,
             ...nutrition,
-            image_url: imageUrl,
+            // Meal photos are used for recognition only, never stored — the
+            // app has no photo history, so there is nothing to display.
+            image_url: null,
             nutrition_source: item.source,
             fdc_id: item.fdcId ?? null,
             confidence: item.confidence ?? null,

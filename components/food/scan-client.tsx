@@ -174,7 +174,6 @@ export function ScanClient({ today }: { today: string }) {
           <FoodReview
             initialCandidates={candidates}
             date={today}
-            imageFile={file}
             notes={result?.notes}
             alternatives={result?.alternatives ?? []}
             onStartOver={reset}

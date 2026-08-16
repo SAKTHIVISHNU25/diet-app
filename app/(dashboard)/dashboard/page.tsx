@@ -8,6 +8,7 @@ import { MacroBreakdown } from '@/components/dashboard/macro-breakdown';
 import { MealSections } from '@/components/dashboard/meal-sections';
 import { WeightCard } from '@/components/dashboard/weight-card';
 import { MedicalDisclaimer } from '@/components/shared/medical-disclaimer';
+import { PageHeader } from '@/components/shared/page-header';
 import { calculateTargets } from '@/lib/calculations/targets';
 import { sumNutrition } from '@/lib/calculations/nutrition';
 import { getProfile } from '@/lib/data/profile';
@@ -44,19 +45,17 @@ export default async function DashboardPage() {
 
   return (
     <main className="px-5 py-6">
-      <header className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-sm text-muted-foreground">{formatRelativeDate(today)}</p>
-          <h1 className="truncate text-2xl font-semibold tracking-tight">
-            Hi, {firstName}
-          </h1>
-        </div>
-        <Button asChild variant="ghost" size="icon" aria-label="Profile settings">
-          <Link href="/profile">
-            <Settings className="size-5" aria-hidden />
-          </Link>
-        </Button>
-      </header>
+      <PageHeader
+        eyebrow={formatRelativeDate(today)}
+        title={`Hi, ${firstName}`}
+        action={
+          <Button asChild variant="ghost" size="icon" aria-label="Profile settings">
+            <Link href="/profile">
+              <Settings className="size-5" aria-hidden />
+            </Link>
+          </Button>
+        }
+      />
 
       <div className="mt-6 space-y-4">
         <CalorieSummary target={targets.calories} consumed={consumed.calories} />
