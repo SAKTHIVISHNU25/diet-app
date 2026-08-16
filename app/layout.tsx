@@ -36,7 +36,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'MyLyf — Calorie & Nutrition Tracker',
+    default: 'MyLyf',
     template: '%s | MyLyf',
   },
   description:
