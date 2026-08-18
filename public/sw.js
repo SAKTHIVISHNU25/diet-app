@@ -109,3 +109,27 @@ self.addEventListener('fetch', (event) => {
     }),
   );
 });
+
+/**
+ * Reminder notifications are raised by the page (see
+ * `components/shared/reminder-scheduler.tsx`), but the click lands here.
+ * Focus an existing window if one is open rather than piling up new tabs.
+ */
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const target = event.notification.data?.url ?? '/dashboard';
+
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((windows) => {
+        for (const client of windows) {
+          if (new URL(client.url).origin !== self.location.origin) continue;
+          return client.focus().then((focused) => focused.navigate(target));
+        }
+        return self.clients.openWindow(target);
+      })
+      .catch(() => undefined),
+  );
+});

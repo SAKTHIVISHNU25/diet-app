@@ -3,6 +3,7 @@ import { MobileNav } from '@/components/shared/mobile-nav';
 import { InstallPrompt } from '@/components/shared/install-prompt';
 import { WelcomeTour } from '@/components/shared/welcome-tour';
 import { TimezoneSync } from '@/components/shared/timezone-sync';
+import { ReminderScheduler } from '@/components/shared/reminder-scheduler';
 import { getProfile } from '@/lib/data/profile';
 import { getUserTimeZone } from '@/lib/date/server';
 import { getSessionUser } from '@/lib/firebase/server';
@@ -25,16 +26,21 @@ export default async function DashboardLayout({
 
   // `getProfile` is React-cached, so this shares the read the child page
   // already makes for its own onboarding guard — no extra round trip.
-  const profile = await getProfile();
-
-  // What the server *thinks* the user's zone is; the client corrects it below
-  // and re-renders if they disagree.
-  const serverTimeZone = await getUserTimeZone();
+  //
+  // The timezone only reads a cookie and does not depend on the profile, so
+  // the two run together rather than stacking one wait on the other.
+  const [profile, serverTimeZone] = await Promise.all([
+    getProfile(),
+    // What the server *thinks* the user's zone is; the client corrects it
+    // below and re-renders if they disagree.
+    getUserTimeZone(),
+  ]);
 
   return (
     <div className="min-h-dvh bg-background">
       <div className="mx-auto w-full max-w-2xl pb-safe-nav">{children}</div>
       <TimezoneSync serverTimeZone={serverTimeZone} />
+      <ReminderScheduler />
       <MobileNav />
       <InstallPrompt />
       <WelcomeTour onboarded={profile?.onboarded === true} />

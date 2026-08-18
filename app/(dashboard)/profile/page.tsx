@@ -4,6 +4,7 @@ import { SignOutButton } from '@/components/auth/sign-out-button';
 import { ProfileForm } from '@/components/profile/profile-form';
 import { TargetsCard } from '@/components/profile/targets-card';
 import { MedicalDisclaimer } from '@/components/shared/medical-disclaimer';
+import { NotificationsCard } from '@/components/profile/notifications-card';
 import { PageHeader } from '@/components/shared/page-header';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { getProfile } from '@/lib/data/profile';
@@ -31,6 +32,12 @@ export default async function ProfilePage() {
       </p>
 
       <ProfileForm profile={profile} />
+
+      <h2 className="mt-8 text-lg font-semibold tracking-tight">Notifications</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Reminders are stored on this device, not on your account.
+      </p>
+      <NotificationsCard className="mt-3" />
 
       <h2 className="mt-8 text-lg font-semibold tracking-tight">Appearance</h2>
       <p className="mt-1 text-sm text-muted-foreground">

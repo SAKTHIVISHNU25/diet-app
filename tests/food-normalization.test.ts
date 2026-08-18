@@ -13,6 +13,8 @@ import {
   plausibleRange,
   DEFAULT_PORTION_GRAMS,
 } from '@/lib/vision/portions';
+import { lookupLocalFood } from '@/lib/nutrition/local-foods';
+import { calculateNutritionForGrams } from '@/lib/calculations/nutrition';
 
 describe('normalizeUsdaFood', () => {
   it('reads the flat search-result nutrient shape', () => {
@@ -166,6 +168,43 @@ describe('rankResults', () => {
     rankResults(foods, 'chicken');
     expect(foods).toEqual(original);
   });
+
+  // Real USDA descriptions. Each of these outranked the plain food before the
+  // scoring fix, and each produced a several-fold macro error downstream.
+  it('ranks the plain food above a dehydrated form of it', () => {
+    const carrots: UsdaFood[] = [
+      // USDA lists dehydrated first, and a stable sort used to preserve that.
+      { fdcId: 1, description: 'Carrot, dehydrated', dataType: 'SR Legacy' },
+      { fdcId: 2, description: 'Carrots, raw', dataType: 'SR Legacy' },
+    ];
+    expect(rankResults(carrots, 'carrot')[0]?.fdcId).toBe(2);
+  });
+
+  it('still finds a processed form when the user asks for it', () => {
+    const carrots: UsdaFood[] = [
+      { fdcId: 1, description: 'Carrot, dehydrated', dataType: 'SR Legacy' },
+      { fdcId: 2, description: 'Carrots, raw', dataType: 'SR Legacy' },
+    ];
+    expect(rankResults(carrots, 'dehydrated carrot')[0]?.fdcId).toBe(1);
+  });
+
+  it('ranks the real fruit above a branded product of the same name', () => {
+    const bananas: UsdaFood[] = [
+      // An exact-description branded match used to beat this on +50 alone.
+      { fdcId: 1, description: 'Banana', dataType: 'Branded' },
+      { fdcId: 2, description: 'Bananas, raw', dataType: 'SR Legacy' },
+    ];
+    expect(rankResults(bananas, 'banana')[0]?.fdcId).toBe(2);
+  });
+
+  it('ranks a raw food above a candied or juiced version', () => {
+    const apples: UsdaFood[] = [
+      { fdcId: 1, description: 'Apple, candied', dataType: 'Survey (FNDDS)' },
+      { fdcId: 2, description: 'Apple juice, canned', dataType: 'Survey (FNDDS)' },
+      { fdcId: 3, description: 'Apple, raw', dataType: 'Survey (FNDDS)' },
+    ];
+    expect(rankResults(apples, 'apple')[0]?.fdcId).toBe(3);
+  });
 });
 
 describe('text normalization helpers', () => {
@@ -249,6 +288,49 @@ describe('clampPortion', () => {
 
   it('treats a zero or negative quantity as one piece', () => {
     expect(plausibleRange('dosa', 0)).toEqual(plausibleRange('dosa', 1));
+  });
+});
+
+describe('lookupLocalFood', () => {
+  it('prefers IFCT figures over the USDA FNDDS dosa entry', () => {
+    // USDA "Dosa, plain" reports 5.7 g protein and 37 g carb per 100 g, which
+    // turns a 350 g plate into 20 g of protein and 130 g of carbs.
+    const dosa = lookupLocalFood('dosa');
+    expect(dosa).not.toBeNull();
+    expect(dosa!.proteinPer100g).toBe(3.9);
+
+    const plate = calculateNutritionForGrams(dosa!, 350);
+    expect(plate.protein_g).toBeCloseTo(13.7, 1);
+    expect(plate.carbs_g).toBeCloseTo(101.5, 1);
+    expect(plate.calories).toBe(588);
+  });
+
+  it('gives coconut chutney a non-zero protein value', () => {
+    const chutney = lookupLocalFood('coconut chutney');
+    expect(chutney!.proteinPer100g).toBeGreaterThan(0);
+  });
+
+  it('matches aliases and ignores case and punctuation', () => {
+    expect(lookupLocalFood('Dosai')!.name).toBe('Plain dosa');
+    expect(lookupLocalFood('  SAMBHAR!  ')!.name).toBe('Sambar');
+    expect(lookupLocalFood('chapathi')!.name).toBe('Chapati (whole wheat)');
+  });
+
+  it('keeps distinct dishes distinct', () => {
+    expect(lookupLocalFood('masala dosa')!.name).toBe('Masala dosa');
+    expect(lookupLocalFood('masala dosa')!.caloriesPer100g).not.toBe(
+      lookupLocalFood('dosa')!.caloriesPer100g,
+    );
+  });
+
+  it('returns null for anything not curated, so USDA still answers', () => {
+    expect(lookupLocalFood('cheeseburger')).toBeNull();
+    expect(lookupLocalFood('dosa with extra cheese')).toBeNull();
+    expect(lookupLocalFood('')).toBeNull();
+  });
+
+  it('tags its results so the UI can show where the numbers came from', () => {
+    expect(lookupLocalFood('idli')!.source).toBe('local');
   });
 });
 

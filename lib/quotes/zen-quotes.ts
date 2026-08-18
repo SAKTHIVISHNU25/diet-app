@@ -5,12 +5,16 @@ import { QUOTE_ROTATION_MS, type MotivationQuote } from '@/types/quote';
 /**
  * Motivational quotes from the ZenQuotes API.
  *
- * The free tier is rate limited per IP, so we pull a batch of quotes and let
- * Next's fetch cache hold it for the rotation window — one upstream request
- * every 15 minutes serves every user and every refresh in between.
+ * The free tier is rate limited per IP, so we pull a batch of quotes and hold
+ * it for the rotation window — one upstream request every 15 minutes serves
+ * every user and every refresh in between.
  *
- * Any failure falls back to a local list. A quote is decoration on the
- * progress page; it must never be able to break the page or slow it down.
+ * A quote is decoration on the journal and progress pages, so it is never
+ * allowed to hold up a render. `getMotivationQuote()` answers from whatever is
+ * already in memory and returns immediately; a stale or missing pool triggers
+ * a *background* refresh that the current request does not wait on. The very
+ * first request after a cold start therefore serves the local fallback rather
+ * than paying for the upstream round trip.
  */
 
 const ENDPOINT = 'https://zenquotes.io/api/quotes';
@@ -45,10 +49,44 @@ const FALLBACK: MotivationQuote[] = [
   ].map((text) => ({ text, author: null, source: 'local' as const })),
 ];
 
-/** One quote, picked at random from the cached batch. */
+/** The batch in memory, plus when it was fetched and any refresh in flight. */
+let pool: MotivationQuote[] = FALLBACK;
+let fetchedAt = 0;
+let refreshing: Promise<void> | null = null;
+
+/**
+ * One quote, picked at random from the batch held in memory.
+ *
+ * Synchronous in practice — it never awaits the network. Kept `async` because
+ * every caller already awaits it and the pages read better that way.
+ */
 export async function getMotivationQuote(): Promise<MotivationQuote> {
-  const pool = await fetchQuotePool();
+  if (isStale()) void refreshPool();
   return pool[Math.floor(Math.random() * pool.length)] ?? DEFAULT_QUOTE;
+}
+
+function isStale(): boolean {
+  return Date.now() - fetchedAt >= QUOTE_ROTATION_MS;
+}
+
+/**
+ * Replace the pool from upstream. Only one refresh runs at a time, and the
+ * timestamp is stamped even on failure so a dead endpoint is retried once per
+ * rotation window rather than on every single request.
+ */
+async function refreshPool(): Promise<void> {
+  if (refreshing) return refreshing;
+
+  refreshing = (async () => {
+    try {
+      pool = await fetchQuotePool();
+    } finally {
+      fetchedAt = Date.now();
+      refreshing = null;
+    }
+  })();
+
+  return refreshing;
 }
 
 async function fetchQuotePool(): Promise<MotivationQuote[]> {

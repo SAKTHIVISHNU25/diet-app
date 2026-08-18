@@ -228,6 +228,6 @@ Support is genuinely uneven. Do not assume parity.
 | `capture="environment"` | Yes | Yes | Yes |
 | Safe-area insets | Yes | Yes | Yes |
 
-**iOS specifics worth knowing:** no install prompt is possible; storage for a home-screen app can be evicted after roughly seven days of non-use (which affects the dismissal flag, not your data — that lives in Firebase); and push notifications require iOS 16.4+ and an installed app. This app does not use push.
+**iOS specifics worth knowing:** no install prompt is possible; storage for a home-screen app can be evicted after roughly seven days of non-use (which affects the dismissal flag, not your data — that lives in Firebase); and push notifications require iOS 16.4+ and an installed app. This app does not use push — reminders are scheduled locally in the page (see `lib/notifications/reminders.ts`) and only fire while the app is running, though the service worker does handle the resulting `notificationclick`.
 
 The in-app install banner is Chromium-only by construction. Elsewhere the app still works fully as a website, and can still be added to the home screen manually.

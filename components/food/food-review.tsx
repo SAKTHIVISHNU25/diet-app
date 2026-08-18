@@ -374,7 +374,7 @@ function CandidateCard({ item, alternatives, onChange, onRemove }: CandidateCard
 
           <div className="space-y-2">
             <Label htmlFor={`grams-${item.id}`} className="text-xs text-muted-foreground">
-              Portion (g)
+              Total portion (g)
             </Label>
             <Input
               id={`grams-${item.id}`}
@@ -399,6 +399,16 @@ function CandidateCard({ item, alternatives, onChange, onRemove }: CandidateCard
             {item.nutrition ? 'Re-check' : 'Get nutrition'}
           </Button>
         </div>
+
+        {/* The portion is the combined weight of all pieces, and nutrition is
+            computed from it alone — quantity is never multiplied in. Say so,
+            because "15" next to "300 g" reads as if it might be. */}
+        {(item.quantity ?? 1) > 1 ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Total weight for all {formatNumber(item.quantity ?? 1)} pieces —{' '}
+            {formatNumber(Math.round(item.grams / (item.quantity || 1)))} g each.
+          </p>
+        ) : null}
 
         {nutrition ? (
           <div className="mt-4 rounded-xl border bg-muted/40 p-4">

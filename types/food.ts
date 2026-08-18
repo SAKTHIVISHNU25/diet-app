@@ -18,7 +18,11 @@ export interface FoodItem extends NutritionPer100g {
   servingSizeLabel?: string;
 }
 
-export type NutritionSource = 'usda' | 'manual' | 'cache' | 'estimate';
+/**
+ * `local` is the curated Indian food table in `lib/nutrition/local-foods.ts`,
+ * which is preferred over USDA for the dishes it covers.
+ */
+export type NutritionSource = 'usda' | 'manual' | 'cache' | 'estimate' | 'local';
 
 /** Absolute nutrition for a concrete portion. */
 export interface NutritionTotals {

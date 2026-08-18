@@ -162,9 +162,11 @@ The service worker caches build assets and serves an offline page. It does **not
 
 This is a deliberate choice. Caching private per-user data would risk showing one account's information to another on a shared device, and would present stale calorie totals as current. Offline write queueing would need conflict resolution and a local mirror of private data — disproportionate machinery, and a real privacy trade-off, for a two-user app.
 
-### Push notifications are not implemented
+### Reminders are local, not push
 
-No meal reminders, no weigh-in nudges.
+Profile → Notifications gives per-device meal, weigh-in and journal reminders, scheduled in the browser. Everything starts off; turning the master switch on requests permission and sends one confirmation notification, once ever. There is no push server, so a reminder only arrives while MyLyf is running (a tab, or the installed PWA). One missed by more than 45 minutes — the device was asleep, the app was closed — is skipped rather than delivered late.
+
+Preferences are stored in `localStorage`, not on the account: notification permission is granted per browser, so a phone must be turned on separately from a laptop. Real push would need a service worker subscription, VAPID keys and a scheduler running server-side — disproportionate for a two-user app.
 
 ---
 

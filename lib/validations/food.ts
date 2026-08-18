@@ -8,7 +8,13 @@ export const mealTypeSchema = z.enum([
   'other',
 ]);
 
-export const nutritionSourceSchema = z.enum(['usda', 'manual', 'cache', 'estimate']);
+export const nutritionSourceSchema = z.enum([
+  'usda',
+  'manual',
+  'cache',
+  'estimate',
+  'local',
+]);
 
 /** ISO date (YYYY-MM-DD) as stored in the `date` columns. */
 export const isoDateSchema = z

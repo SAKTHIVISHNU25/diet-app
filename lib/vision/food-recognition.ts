@@ -69,7 +69,7 @@ export async function recognizeFood(input: ImageInput): Promise<RecognitionResul
       };
 
       try {
-        const { items, source } = await searchFood(food.name, 1);
+        const { items } = await searchFood(food.name, 1);
         const match = items[0];
 
         if (match) {
@@ -81,7 +81,8 @@ export async function recognizeFood(input: ImageInput): Promise<RecognitionResul
               carbsPer100g: match.carbsPer100g,
               fatPer100g: match.fatPer100g,
             },
-            source: source === 'cache' ? 'cache' : 'usda',
+            // `match` is the first item, so it carries the search's own source.
+            source: match.source,
             fdcId: match.fdcId,
             needsNutrition: false,
           };
