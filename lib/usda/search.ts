@@ -9,7 +9,7 @@ import { MAX_CANDIDATES, pickBestMatch } from '@/lib/nutrition/match-ai';
 import { toNumber } from '@/lib/firebase/converters';
 import { searchFoods, UsdaError, isUsdaConfigured } from './client';
 import { hasUsableNutrition, normalizeUsdaFood } from './nutrition';
-import { PREFERRED_DATA_TYPES, type UsdaFood } from './types';
+import type { UsdaFood } from './types';
 
 export interface FoodSearchResult {
   items: FoodItem[];
